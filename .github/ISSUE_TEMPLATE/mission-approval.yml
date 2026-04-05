@@ -1,0 +1,26 @@
+name: 'Mission/Task Approval (미션/과제 승인 요청)'
+description: 'Request approval for a completed task (완료된 미션에 대한 승인 요청)'
+title: '[Approval] Student Name - Task ID'
+labels: ['approval', 'verification-needed']
+body:
+  - type: input
+    id: student_name
+    attributes:
+      label: 'Student Name (이름)'
+      placeholder: 'Enter your name (이름을 입력하세요)'
+    validations:
+      required: true
+  - type: input
+    id: task_id
+    attributes:
+      label: 'Task/Mission ID (미션 ID)'
+      placeholder: 'e.g., T-001 (미션 번호를 입력하세요)'
+    validations:
+      required: true
+  - type: textarea
+    id: proof
+    attributes:
+      label: 'Proof/Result (결과 및 증빙)'
+      placeholder: 'Describe your result or link a file (완료 결과 또는 링크를 남겨주세요)'
+    validations:
+      required: true

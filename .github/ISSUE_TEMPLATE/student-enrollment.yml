@@ -1,0 +1,30 @@
+name: 'Student Enrollment Request (학생 수강 신청)'
+description: 'Request to enroll in a new youth program (신규 프로그램 수강 신청)'
+title: '[Enrollment] Student Name - Program Name'
+labels: ['enrollment', 'pending']
+body:
+  - type: input
+    id: student_name
+    attributes:
+      label: 'Student Name (이름)'
+      placeholder: 'Enter your name (이름을 입력하세요)'
+    validations:
+      required: true
+  - type: dropdown
+    id: program_name
+    attributes:
+      label: 'Program Name (신청 프로그램)'
+      options:
+        - 'AI Coding Master'
+        - 'Robotics Discovery'
+        - 'Youth Leadership'
+        - 'Others (기타)'
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: 'Motivation (지원 동기)'
+      placeholder: 'Why do you want to join? (지원 동기를 간단히 적어주세요)'
+    validations:
+      required: false
