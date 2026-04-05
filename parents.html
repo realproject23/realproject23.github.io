@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="parent_title">Youth Canvas | 학부모 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css" rel="stylesheet">
+    <script src="i18n.js"></script>
+    <style>
+        /* 🎨 4가지 테마 CSS Variables */
+        :root {
+            --bg: #EAEEEE; --surface: #EAEEEE; --text-main: #333333; --text-muted: #8899A6;
+            --primary: #9EBCEE; --focus-ring: #00CFCC;
+            --shadow-out: 8px 8px 16px #cdd0d0, -8px -8px 16px #ffffff;
+            --shadow-in: inset 6px 6px 12px #cdd0d0, inset -6px -6px 12px #ffffff;
+            --shadow-sm: 4px 4px 8px #cdd0d0, -4px -4px 8px #ffffff;
+            --radius-btn: 14px; --radius-card: 20px;
+        }
+        [data-theme="bench"] {
+            --bg: #d4cec4; --surface: #d4cec4; --text-main: #333333; --text-muted: #666666;
+            --primary: #2A9D8F; --focus-ring: #2A9D8F;
+            --shadow-out: 8px 8px 16px #aba69e, -8px -8px 16px #fdf6ea;
+            --shadow-in: inset 6px 6px 12px #aba69e, inset -6px -6px 12px #fdf6ea;
+            --shadow-sm: 4px 4px 8px #aba69e, -4px -4px 8px #fdf6ea;
+            --radius-btn: 14px; --radius-card: 20px;
+        }
+        [data-theme="peach"] {
+            --bg: #F5EBE4; --surface: #F5EBE4; --text-main: #5C4B41; --text-muted: #8A786E;
+            --primary: #E89A86; --focus-ring: #E89A86;
+            --shadow-out: 9px 9px 18px #d8ceca, -9px -9px 18px #ffffff;
+            --shadow-in: inset 6px 6px 12px #d8ceca, inset -6px -6px 12px #ffffff;
+            --shadow-sm: 4px 4px 8px #d8ceca, -4px -4px 8px #ffffff;
+            --radius-btn: 14px; --radius-card: 24px;
+        }
+        [data-theme="blue"] {
+            --bg: #E8F0F8; --surface: #E8F0F8; --text-main: #1E3A8A; --text-muted: #64748B;
+            --primary: #3B82F6; --focus-ring: #60A5FA;
+            --shadow-out: 8px 8px 16px #cfd7df, -8px -8px 16px #ffffff;
+            --shadow-in: inset 6px 6px 12px #cfd7df, inset -6px -6px 12px #ffffff;
+            --shadow-sm: 4px 4px 8px #cfd7df, -4px -4px 8px #ffffff;
+            --radius-btn: 14px; --radius-card: 22px;
+        }
+
+        body { font-family: 'NanumSquareNeo', sans-serif; background-color: var(--bg); color: var(--text-main); transition: all 0.4s ease; }
+        
+        .ui-card { background-color: var(--surface); box-shadow: var(--shadow-out); border-radius: var(--radius-card); border: 1px solid rgba(255,255,255,0.4); }
+        .ui-btn { background-color: var(--surface); box-shadow: var(--shadow-sm); border-radius: var(--radius-btn); color: var(--text-main); font-weight: 800; transition: all 0.2s ease; cursor: pointer; border: 1px solid rgba(255,255,255,0.3); text-align: center; }
+        .ui-btn:hover { box-shadow: var(--shadow-in); color: var(--primary); }
+        .ui-btn-primary { background-color: var(--primary); box-shadow: var(--shadow-sm); border-radius: var(--radius-btn); color: #ffffff; font-weight: 800; transition: all 0.2s ease; border: none; cursor: pointer; }
+        .ui-btn-primary:active { transform: scale(0.98); }
+        .tab-active { box-shadow: var(--shadow-in) !important; color: var(--primary) !important; border: 1px solid transparent !important; }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 10px; opacity: 0.3; }
+        .lang-btn { transition: all 0.2s; cursor: pointer; }
+        .lang-btn.active { background-color: var(--primary); color: white; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 sm:p-8">
+
+    <!-- 상단 헤더 -->
+    <header class="w-full max-w-5xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full ui-card flex items-center justify-center text-xl font-black text-[var(--primary)] border-2 border-white/50">Y</div>
+            <div>
+                <h1 id="welcomeMessage" data-i18n="parent_welcome" class="text-xl font-extrabold tracking-tight text-[var(--text-main)]">학부모 공간</h1>
+                <p data-i18n="parent_subtitle" class="text-[13px] font-bold text-[var(--text-muted)] mt-1">우리 아이 성장 리포트</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-4 w-full sm:w-auto justify-between sm:justify-end">
+            <!-- Language Switcher -->
+            <div class="flex items-center gap-2 ui-card px-4 py-1.5 rounded-full mr-2 border border-white/40 shadow-sm">
+                <button onclick="setLanguage('ko')" data-lang="ko" class="lang-btn px-2.5 py-1 text-[13px] font-black rounded-full transition">KO</button>
+                <button onclick="setLanguage('en')" data-lang="en" class="lang-btn px-2.5 py-1 text-[13px] font-black rounded-full transition">EN</button>
+            </div>
+            <!-- 테마 스위처 (4가지 테마) -->
+            <div class="flex items-center gap-3 ui-card p-1.5 px-4 rounded-full">
+                <button onclick="setTheme('bench')" class="w-6 h-6 rounded-full shadow-md hover:scale-110 transition" style="background: linear-gradient(135deg, #d2ccc4, #a39b8e);" title="Bench"></button>
+                <button onclick="setTheme('mint')" class="w-6 h-6 rounded-full shadow-md hover:scale-110 transition" style="background: linear-gradient(135deg, #2A9D8F, #1c7c70);" title="Mint (Default)"></button>
+                <button onclick="setTheme('peach')" class="w-6 h-6 rounded-full shadow-md hover:scale-110 transition" style="background: linear-gradient(135deg, #ffcba4, #e89a86);" title="Peach"></button>
+                <button onclick="setTheme('blue')" class="w-6 h-6 rounded-full shadow-md hover:scale-110 transition" style="background: linear-gradient(135deg, #a1c4fd, #c2e9fb);" title="Blue"></button>
+            </div>
+            <button id="btn-logout" data-i18n="dash_logout" class="ui-btn py-2.5 px-4 text-[15px] whitespace-nowrap">🔓 로그아웃</button>
+        </div>
+    </header>
+
+    <!-- 🚀 다자녀 선택 탭 영역 (자녀가 여러 명일 경우 탭 생성) -->
+    <div class="w-full max-w-5xl mb-6">
+        <div id="childTabs" class="flex gap-4 overflow-x-auto pb-2">
+            <!-- JS로 동적 렌더링 됨 -->
+        </div>
+    </div>
+
+    <!-- 🌟 메인 대시보드 콘텐츠 -->
+    <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-8 pb-10">
+        
+        <!-- 좌측: 자녀 정보, 출결, 결제내역 -->
+        <section class="lg:col-span-1 space-y-8">
+            
+            <!-- 자녀 소속 정보 -->
+            <div class="ui-card p-6 border-t-4 border-t-[var(--primary)]">
+                <p data-i18n="parent_prog_label" class="text-[13px] font-bold text-[var(--text-muted)] mb-1">소속 프로그램</p>
+                <h2 id="childProgram" data-i18n="parent_loading" class="text-lg font-extrabold text-[var(--text-main)] mb-3"><span data-i18n="admin_table_loading">데이터 로딩 중...</span></h2>
+                <span data-i18n="dash_student_badge" class="px-3 py-1 bg-[var(--surface)] shadow-[var(--shadow-in)] text-[var(--primary)] font-bold rounded-lg text-[15px]">수강생</span>
+            </div>
+
+            <!-- ✅ 누적 출석부 -->
+            <div class="ui-card p-6">
+                <h3 data-i18n="parent_att_title" class="text-[17px] font-extrabold mb-4 text-[var(--text-main)]">📅 이번 달 누적 출결</h3>
+                <div class="flex justify-between gap-3">
+                    <div class="flex-1 p-3 rounded-xl text-center" style="box-shadow: var(--shadow-in); background-color: var(--surface);">
+                        <p data-i18n="dash_att_present" class="text-[13px] text-green-600 font-bold mb-1">출석</p>
+                        <p id="attPresent" class="text-2xl font-extrabold text-green-500">0</p>
+                    </div>
+                    <div class="flex-1 p-3 rounded-xl text-center" style="box-shadow: var(--shadow-in); background-color: var(--surface);">
+                        <p data-i18n="dash_att_late" class="text-[13px] text-yellow-600 font-bold mb-1">지각</p>
+                        <p id="attLate" class="text-2xl font-extrabold text-yellow-500">0</p>
+                    </div>
+                    <div class="flex-1 p-3 rounded-xl text-center" style="box-shadow: var(--shadow-in); background-color: var(--surface);">
+                        <p data-i18n="dash_att_absent" class="text-[13px] text-red-600 font-bold mb-1">결석</p>
+                        <p id="attAbsent" class="text-2xl font-extrabold text-red-500">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 💳 결제 내역 -->
+            <div class="ui-card p-6">
+                <h3 data-i18n="parent_payment_title" class="text-[17px] font-extrabold mb-4 text-[var(--text-main)]">💳 최근 수납 내역</h3>
+                <div id="billingList" class="space-y-3 max-h-48 overflow-y-auto pr-2">
+                    <p data-i18n="parent_no_payment" class="text-[15px] text-[var(--text-muted)] font-bold text-center py-4">결제 내역이 없습니다.</p>
+                </div>
+            </div>
+            
+        </section>
+
+        <!-- 우측: 레이더 차트 및 선생님 피드백 -->
+        <section class="lg:col-span-2 space-y-8">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <!-- 📊 역량 레이더 차트 -->
+                <div class="ui-card p-6 flex flex-col items-center">
+                    <h3 data-i18n="parent_chart_title" class="text-[19px] font-extrabold mb-2 w-full text-left text-[var(--text-main)]">우리 아이 역량 밸런스</h3>
+                    <p data-i18n="parent_chart_desc" class="text-[13px] text-[var(--text-muted)] font-bold w-full text-left mb-4">선생님의 최근 평가 (100점 만점)</p>
+                    <div class="w-full h-48 flex justify-center mb-2 relative">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- ✍️ 선생님 코멘트 -->
+                <div class="ui-card p-6 flex flex-col h-full">
+                    <h3 data-i18n="parent_feedback_title" class="text-[19px] font-extrabold mb-4 text-[var(--text-main)]">👨‍🏫 선생님 피드백</h3>
+                    <div class="flex-1 p-5 rounded-2xl" style="background-color: var(--surface); box-shadow: var(--shadow-in);">
+                        <p id="teacherComment" data-i18n="parent_loading" class="text-[17px] text-[var(--text-main)] leading-relaxed font-bold break-keep">
+                            데이터를 불러오는 중입니다...
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 👨‍🏫 자녀 체크리스트 및 상담 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <!-- 자녀 체크리스트 (읽기전용) -->
+                <div class="ui-card p-6 flex flex-col h-full">
+                    <h3 data-i18n="parent_checklist_title" class="text-[19px] font-extrabold mb-4 text-[var(--text-main)]">✅ 자녀 체크리스트 (진행현황)</h3>
+                    <div id="child-tasks" data-i18n="parent_select_child" class="flex-1 p-4 rounded-2xl overflow-y-auto max-h-64 font-bold text-[15px]" style="box-shadow: var(--shadow-in); background-color: var(--surface);">
+                        자녀를 선택하세요.
+                    </div>
+                </div>
+                
+                <!-- 💬 선생님과 1:1 톡 -->
+                <div class="ui-card flex flex-col h-full overflow-hidden">
+                    <div class="p-4 bg-[var(--primary)] text-white font-extrabold text-[17px] flex justify-between items-center">
+                        <span data-i18n="parent_chat_title">💬 선생님 1:1 상담</span>
+                        <div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-300"></span><span data-i18n="parent_connected" class="text-[12px] opacity-80">연결됨</span></div>
+                    </div>
+                    <div id="parent-chat-box" class="flex-1 p-4 overflow-y-auto max-h-48 space-y-3 font-bold text-[15px]" style="background-color: var(--surface);">
+                        <p data-i18n="parent_chat_empty" class="text-center py-4 text-[var(--text-muted)]">대화를 시작해보세요.</p>
+                    </div>
+                    <div class="p-3 border-t border-white/20 flex gap-2">
+                        <input type="text" id="parent-chat-input" data-i18n-ph="dash_chat_ph" placeholder="메시지 입력..." class="flex-1 ui-card py-2 outline-none px-3 text-[15px] border-none" style="box-shadow: var(--shadow-in);">
+                        <button onclick="parentSendChat()" data-i18n="dash_send" class="ui-btn-primary px-4 py-2 text-[15px] shrink-0 whitespace-nowrap">전송</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🤖 AI 분석 리포트 -->
+            <div class="ui-card p-6 mb-8 border-l-4 border-l-[var(--primary)]">
+                <h4 data-i18n="parent_ai_title" class="font-extrabold mb-3 text-[var(--text-main)] text-[17px]">🤖 AI 자녀 성장 분석 리포트</h4>
+                <div id="parent-ai-report" data-i18n="parent_analyzing" class="text-[17px] font-bold leading-relaxed break-keep">
+                    데이터를 분석 중입니다...
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 🎨 테마 설정
+        function setTheme(theme) {
+            if (theme === 'mint' || theme === 'default') document.documentElement.removeAttribute('data-theme');
+            else document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('youth_canvas_parent_theme', theme);
+            if(window.currentRadarData) renderChart(window.currentRadarData); 
+        }
+        const savedTheme = localStorage.getItem('youth_canvas_parent_theme');
+        if (savedTheme) setTheme(savedTheme);
+
+        let myRadarChart = null;
+        let parentData = null; 
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_BASE_URL = "http://127.0.0.1:8000";
+            
+            function getAuthHeaders() {
+                const token = localStorage.getItem('youth_canvas_token');
+                if (!token) { window.location.href = "login_v3.html"; return null; }
+                return { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" };
+            }
+            window.getAuthHeaders = getAuthHeaders;
+
+            document.getElementById('btn-logout').addEventListener('click', () => {
+                localStorage.removeItem('youth_canvas_token');
+                localStorage.removeItem('youth_canvas_user');
+                window.location.href = "login_v3.html";
+            });
+
+            const userStr = localStorage.getItem('youth_canvas_user');
+            if (!userStr) { window.location.href = "login_v3.html"; return; }
+            const user = JSON.parse(userStr);
+            const headers = getAuthHeaders();
+            if(!headers) return;
+
+            fetch(`${API_BASE_URL}/api/parent/${encodeURIComponent(user.name)}`, { headers: headers })
+            .then(res => {
+                if(res.status === 401 || res.status === 403) {
+                    localStorage.clear(); window.location.href = "login_v3.html"; throw new Error("Unauthorized");
+                }
+                return res.json();
+            })
+            .then(data => {
+                parentData = data;
+                renderChildTabs();
+                if(parentData.children && parentData.children.length > 0) {
+                    switchChildView(0); 
+                } else {
+                    document.getElementById('welcomeMessage').innerText = user.name + getI18nText('parent_suffix');
+                    document.getElementById('childProgram').innerText = getI18nText('parent_no_child');
+                    document.getElementById('teacherComment').innerText = getI18nText('parent_request_link');
+                }
+            })
+            .catch(err => console.error("Data error:", err));
+        });
+
+        function renderChildTabs() {
+            const tabsContainer = document.getElementById('childTabs');
+            tabsContainer.innerHTML = '';
+            parentData.children.forEach((child, index) => {
+                tabsContainer.innerHTML += `
+                    <button onclick="switchChildView(${index})" id="tab-child-${index}" class="tab-btn ui-btn px-6 py-3 text-[17px] shrink-0 flex items-center gap-2">
+                        👦 <span>${child.name}</span>
+                    </button>
+                `;
+            });
+        }
+
+        window.switchChildView = function(index) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('tab-active'));
+            document.getElementById(`tab-child-${index}`).classList.add('tab-active');
+
+            const child = parentData.children[index];
+            const lang = localStorage.getItem('yc_language') || 'ko';
+
+            document.getElementById('welcomeMessage').innerText = child.name + getI18nText('parent_suffix');
+            document.getElementById('childProgram').innerText = child.program;
+            document.getElementById('attPresent').innerText = child.attendance['출석'] || 0;
+            document.getElementById('attLate').innerText = child.attendance['지각'] || 0;
+            document.getElementById('attAbsent').innerText = child.attendance['결석'] || 0;
+            document.getElementById('teacherComment').innerText = `"${child.evaluation.comment}"`;
+
+            const billingContainer = document.getElementById('billingList');
+            billingContainer.innerHTML = '';
+            if(child.billing && child.billing.length > 0) {
+                child.billing.forEach(b => {
+                    billingContainer.innerHTML += `
+                        <div class="p-3 rounded-xl flex justify-between items-center" style="box-shadow: var(--shadow-in); background-color: var(--surface);">
+                            <div>
+                                <p class="text-[14px] font-extrabold text-[var(--text-main)] mb-1">${b.program_name}</p>
+                                <p class="text-[12px] text-[var(--text-muted)] font-bold">${b.date} | ${b.method}</p>
+                            </div>
+                            <span class="text-[17px] font-extrabold text-[var(--primary)]">${b.amount.toLocaleString()}${getI18nText('parent_currency')}</span>
+                        </div>
+                    `;
+                });
+            } else {
+                billingContainer.innerHTML = `<p class="text-[15px] text-[var(--text-muted)] font-bold text-center py-4">${getI18nText('parent_no_payment')}</p>`;
+            }
+
+            const scores = child.evaluation.scores;
+            window.currentRadarData = [scores.task, scores.prof, scores.att, scores.comm];
+            renderChart(window.currentRadarData);
+            
+            updateParentAI(child);
+            renderChildTasks(child);
+            loadParentChat();
+        };
+
+        function renderChildTasks(child) {
+            const container = document.getElementById('child-tasks');
+            if(!child.evaluation) { container.innerHTML = getI18nText('parent_wait_data'); return; }
+            
+            const total = 12; // Static total for now as per template
+            const done = child.attendance['출석'] || 0;
+            
+            container.innerHTML = `<div class="p-3 bg-white/50 rounded-xl border border-white/40 mb-2">
+                ${getI18nText('parent_mission_total')} ${total}${getI18nText('parent_mission_unit')} 
+                <span class='text-[var(--primary)]'>${done}${getI18nText('parent_mission_done')}</span></div>`;
+            container.innerHTML += `<div class='opacity-70 italic'>${getI18nText('parent_checklist_hint')}</div>`;
+        }
+
+        function updateParentAI(child) {
+            const attrs = [getI18nText('dash_score_exec'), getI18nText('dash_score_prof'), getI18nText('dash_score_integ'), getI18nText('dash_score_comm')];
+            const maxIdx = window.currentRadarData.indexOf(Math.max(...window.currentRadarData));
+            
+            const p1 = getI18nText('parent_ai_achieve').replace('{prog}', child.program);
+            const p2 = getI18nText('parent_ai_especially').replace('{attr}', attrs[maxIdx]);
+            const p3 = getI18nText('parent_ai_social');
+            
+            document.getElementById('parent-ai-report').innerHTML = `🌟 ${child.name} ${p1} <br><br> ${p2} <br><br> ${p3}`;
+        }
+
+        window.loadParentChat = function() {
+            fetch(`http://127.0.0.1:8000/api/parent/chat`, { headers: getAuthHeaders() })
+            .then(res => res.json()).then(msgs => {
+                const box = document.getElementById('parent-chat-box');
+                if(!msgs.length) return;
+                box.innerHTML = '';
+                msgs.forEach(m => {
+                    const isMe = m.sender !== 'admin';
+                    box.innerHTML += `<div class="flex ${isMe ? 'justify-end' : 'justify-start'}"><div class="${isMe ? 'bg-[var(--primary)] text-white' : 'bg-white shadow-sm border border-gray-100'} p-2.5 rounded-xl text-[14px] max-w-[85%]">${m.text}</div></div>`;
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        window.parentSendChat = function() {
+            const input = document.getElementById('parent-chat-input');
+            if(!input.value) return;
+            fetch(`http://127.0.0.1:8000/api/parent/chat/send`, { method: "POST", headers: getAuthHeaders(), body: JSON.stringify({ message: input.value }) })
+            .then(() => { input.value = ''; loadParentChat(); });
+        }
+
+        function renderChart(radarData) {
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#9EBCEE';
+            const labels = [getI18nText('dash_score_exec'), getI18nText('dash_score_prof'), getI18nText('dash_score_integ'), getI18nText('dash_score_comm')];
+            
+            const radarChartEl = document.getElementById('radarChart');
+            if(radarChartEl) radarChartEl.style.display = 'none';
+            
+            let plotlyTarget = document.getElementById('plotly-radar');
+            if(!plotlyTarget) {
+                plotlyTarget = document.createElement('div');
+                plotlyTarget.id = 'plotly-radar';
+                plotlyTarget.className = "w-full h-48";
+                if(radarChartEl) radarChartEl.parentNode.appendChild(plotlyTarget);
+            }
+
+            Plotly.newPlot(plotlyTarget, [{
+                r: radarData, theta: labels, type: 'scatterpolar', fill: 'toself',
+                fillcolor: `${primaryColor}60`, line: {color: primaryColor}
+            }], { polar: { radialaxis: { visible: true, range: [0, 100], gridcolor: 'rgba(0,0,0,0.05)' } }, margin: {t:20, b:20, l:40, r:40}, paper_bgcolor: 'rgba(0,0,0,0)', font: {size: 10, weight: 'bold'} }, {displayModeBar: false});
+        }
+    </script>
+</body>
+</html>

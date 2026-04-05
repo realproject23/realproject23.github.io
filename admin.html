@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Youth Canvas | 관리자 페이지</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="i18n.js"></script>
+    <script>document.documentElement.style.zoom = (localStorage.getItem('yc_zoom') || '100') + '%';</script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #EAEEEE; --surface: #EAEEEE; --text-main: #333333; --text-muted: #8899A6; --primary: #9EBCEE; --focus-ring: #00CFCC; --shadow-out: 8px 8px 16px #cdd0d0, -8px -8px 16px #ffffff; --shadow-in: inset 6px 6px 12px #cdd0d0, inset -6px -6px 12px #ffffff; --shadow-sm: 4px 4px 8px #cdd0d0, -4px -4px 8px #ffffff; --radius-btn: 14px; --radius-card: 20px; }
+        [data-theme="bench"] { --bg: #d4cec4; --surface: #d4cec4; --text-main: #333333; --text-muted: #666666; --primary: #2A9D8F; --focus-ring: #2A9D8F; --shadow-out: 8px 8px 16px #aba69e, -8px -8px 16px #fdf6ea; --shadow-in: inset 6px 6px 12px #aba69e, inset -6px -6px 12px #fdf6ea; --shadow-sm: 4px 4px 8px #aba69e, -4px -4px 8px #fdf6ea; --radius-btn: 14px; --radius-card: 20px; }
+        [data-theme="peach"] { --bg: #FDF6F2; --surface: #FDF6F2; --text-main: #5C4B41; --text-muted: #8A786E; --primary: #E89A86; --focus-ring: #E89A86; --shadow-out: 9px 9px 18px #e8e2de, -9px -9px 18px #ffffff; --shadow-in: inset 6px 6px 12px #e8e2de, inset -6px -6px 12px #ffffff; --shadow-sm: 4px 4px 8px #e8e2de, -4px -4px 8px #ffffff; --radius-btn: 14px; --radius-card: 24px; }
+        [data-theme="blue"] { --bg: #E8F0F8; --surface: #E8F0F8; --text-main: #1E3A8A; --text-muted: #64748B; --primary: #3B82F6; --focus-ring: #60A5FA; --shadow-out: 8px 8px 16px #cfd7df, -8px -8px 16px #ffffff; --shadow-in: inset 6px 6px 12px #cfd7df, inset -6px -6px 12px #ffffff; --shadow-sm: 4px 4px 8px #cfd7df, -4px -4px 8px #ffffff; --radius-btn: 14px; --radius-card: 22px; }
+        body { font-family: 'Nunito', 'Noto Sans KR', sans-serif; background-color: var(--bg); color: var(--text-main); transition: all 0.4s ease; }
+        .ui-card { background-color: var(--surface); box-shadow: var(--shadow-out); border-radius: var(--radius-card); transition: all 0.4s ease; border: 1px solid rgba(255,255,255,0.4); }
+        .ui-btn { background-color: var(--surface); box-shadow: var(--shadow-sm); border-radius: var(--radius-btn); color: var(--text-main); font-weight: 800; transition: all 0.2s ease; cursor: pointer; border: 1px solid rgba(255,255,255,0.3); text-align: center; }
+        .ui-btn:hover { box-shadow: var(--shadow-in); color: var(--primary); }
+        .ui-btn-primary { background-color: var(--primary); box-shadow: var(--shadow-sm); border-radius: var(--radius-btn); color: #ffffff; font-weight: 800; transition: all 0.2s ease; border: none; cursor: pointer; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .ui-btn-primary:active { transform: scale(0.98); }
+        .ui-input { background-color: var(--surface); box-shadow: var(--shadow-in); border-radius: 12px; border: 2px solid transparent; color: var(--text-main); transition: all 0.3s ease; width: 100%; padding: 0.75rem 1rem; font-size: 0.875rem; font-weight: bold; }
+        .ui-input:focus { outline: none; border-color: var(--focus-ring); }
+        
+        .sidebar-btn { width: 100%; padding: 14px 16px; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 800; color: var(--text-muted); border-radius: var(--radius-btn); transition: all 0.3s ease; border: 1px solid transparent; background-color: transparent; cursor: pointer; text-align: left; }
+        .sidebar-btn:hover { background-color: rgba(255,255,255,0.4); color: var(--text-main); }
+        .sidebar-btn.tab-active { box-shadow: var(--shadow-in) !important; color: var(--primary) !important; background-color: var(--surface) !important; border: 1px solid rgba(255,255,255,0.4) !important; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 600px; }
+        th { text-align: left; padding: 1rem; color: var(--text-muted); font-weight: 800; border-bottom: 2px solid rgba(0,0,0,0.05); white-space: nowrap; }
+        td { padding: 1rem; border-bottom: 1px solid rgba(0,0,0,0.05); color: var(--text-main); font-weight: bold; white-space: nowrap; }
+        tr:hover td { background-color: rgba(0,0,0,0.02); }
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 10px; opacity: 0.3; }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row h-screen w-full overflow-hidden">
+
+    <div class="md:hidden flex justify-between items-center h-16 px-4 bg-[var(--surface)] shadow-sm z-30 w-full shrink-0 border-b border-white/40">
+        <h1 class="text-lg font-extrabold text-[var(--primary)] flex items-center gap-2"><span class="w-7 h-7 rounded-full ui-card flex items-center justify-center text-[13px] font-black border-2 border-white/50">Y</span>Youth Canvas</h1>
+        <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 ui-shadow-in px-3 py-1 rounded-full">
+                <button onclick="setLanguage('ko')" data-lang="ko" class="lang-btn px-3 py-1 text-[13px] font-black rounded-full transition">KO</button>
+                <button onclick="setLanguage('en')" data-lang="en" class="lang-btn px-3 py-1 text-[13px] font-black rounded-full transition">EN</button>
+            </div>
+            <button id="mobile-menu-btn" class="p-2 ui-btn rounded-lg w-10 h-10 flex items-center justify-center text-lg">☰</button>
+        </div>
+    </div>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden transition-opacity duration-300"></div>
+
+    <aside id="sidebar" class="fixed md:relative top-0 left-0 h-full w-64 shrink-0 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out z-50 flex flex-col p-6 bg-[var(--surface)] shadow-2xl md:shadow-[var(--shadow-out)] md:m-4 md:rounded-[var(--radius-card)] md:h-[calc(100vh-2rem)] md:border md:border-white/50">
+        <div class="flex justify-between items-start mb-8 mt-2 md:mt-0">
+            <div class="p-4 rounded-[var(--radius-card)] w-full" style="box-shadow: var(--shadow-in); border: 1px solid rgba(255,255,255,0.5);">
+                <h1 class="text-lg font-extrabold tracking-tight text-[var(--primary)] flex items-center gap-2"><span class="w-7 h-7 rounded-full ui-card flex items-center justify-center text-[13px] font-black border-2 border-white/50">Y</span>Youth Canvas</h1>
+                <p data-i18n="admin_platform_desc" class="text-[12px] font-bold text-[var(--text-muted)] mt-1.5 pl-9">청소년 시설 통합 관리</p>
+                <div class="mt-3 pl-9"><span data-i18n="admin_master" class="bg-[var(--primary)] text-white px-2 py-0.5 rounded-full text-[13px] font-bold shadow-sm">마스터 권한</span></div>
+            </div>
+            <button id="close-sidebar-btn" class="md:hidden ml-2 ui-btn w-10 h-10 flex items-center justify-center rounded-xl font-bold text-[var(--text-muted)]">X</button>
+        </div>
+
+        <nav id="main-tabs" class="flex-1 space-y-1 overflow-y-auto custom-scrollbar pr-2 pb-6">
+            <button class="tab-link tab-active sidebar-btn" data-tab="dashboard" data-i18n="tab_dashboard">📈 경영 대시보드</button>
+            <button class="tab-link sidebar-btn" data-tab="finance" data-i18n="tab_finance">💳 행정/재무 관리</button>
+            <button class="tab-link sidebar-btn" data-tab="comprehensive" data-i18n="tab_comprehensive">📊 종합 명단</button>
+            <button class="tab-link sidebar-btn" data-tab="new-class" data-i18n="tab_new_class">📝 신규 개설</button>
+            <button class="tab-link sidebar-btn" data-tab="parent-crm" data-i18n="tab_parent_crm"><span data-i18n="admin_role_parent">👨‍👩‍👧‍👦 학부모</span> 계정</button>
+            
+            <div class="pt-4 pb-2 text-[13px] font-bold text-[var(--text-muted)] pl-2">More</div>
+            <button class="tab-link sidebar-btn" data-tab="attendance" data-i18n="tab_attendance">✅ 출석 관리</button>
+            <button class="tab-link sidebar-btn" data-tab="evaluation" data-i18n="tab_evaluation">✍️ 평가/코멘트</button>
+            <button class="tab-link sidebar-btn" data-tab="chat-mgmt" data-i18n="tab_chat_mgmt">💬 1:1 상담</button>
+            <button class="tab-link sidebar-btn" data-tab="edit-info" data-i18n="tab_edit_info">⚙️ 정보 수정</button>
+            <button class="tab-link sidebar-btn" data-tab="account-mgmt" data-i18n="tab_account_mgmt">🔐 계정 관리</button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 w-full h-full overflow-y-auto p-4 md:p-8 lg:p-12 relative bg-[var(--bg)]">
+        <div class="max-w-7xl mx-auto w-full">
+            <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <h2 class="text-xl md:text-2xl font-extrabold text-[var(--text-main)]" id="current-tab-title">경영 대시보드</h2>
+                <div class="flex flex-wrap items-center gap-3 md:gap-4 w-full sm:w-auto justify-start sm:justify-end mt-2 sm:mt-0">
+                    <!-- Language Switcher -->
+                    <div class="flex items-center gap-2 ui-shadow-in px-4 py-1.5 rounded-full w-max">
+                        <button onclick="setLanguage('ko')" data-lang="ko" class="lang-btn px-2 py-0.5 text-[13px] font-black rounded-full transition">KO</button>
+                        <button onclick="setLanguage('en')" data-lang="en" class="lang-btn px-2 py-0.5 text-[13px] font-black rounded-full transition">EN</button>
+                    </div>
+                    <div class="flex items-center gap-3 ui-card p-1.5 px-4 rounded-full">
+                        <button onclick="setTheme('bench')" class="w-6 h-6 rounded-full shadow-md hover:scale-110 transition" style="background: linear-gradient(135deg, #d2ccc4, #a39b8e);" title="Bench"></button>
+                        <button onclick="setTheme('mint')" class="w-6 h-6 rounded-full shadow-md hover:scale-110 transition" style="background: linear-gradient(135deg, #2A9D8F, #1c7c70);" title="Mint (Default)"></button>
+                        <button onclick="setTheme('peach')" class="w-6 h-6 rounded-full shadow-md hover:scale-110 transition" style="background: linear-gradient(135deg, #ffcba4, #e89a86);" title="Peach"></button>
+                        <button onclick="setTheme('blue')" class="w-6 h-6 rounded-full shadow-md hover:scale-110 transition" style="background: linear-gradient(135deg, #a1c4fd, #c2e9fb);" title="Blue"></button>
+                    </div>
+                    <button id="btn-logout" data-i18n="admin_logout" class="ui-btn py-2.5 px-4 text-[15px] whitespace-nowrap">🔓 로그아웃</button>
+                </div>
+            </header>
+
+            <div id="tab-contents" class="pb-10">
+                <div class="tab-content active" id="dashboard">
+                    <div class="ui-card p-4 md:p-6 mb-8 border-t-4 border-[var(--primary)] relative overflow-hidden bg-blue-50/30">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 data-i18n="admin_pending_title" class="font-extrabold text-[var(--text-main)] text-[17px] md:text-[19px] flex items-center gap-2">
+                                🔔 학생 미션 승인 대기창
+                                <span id="pending-count" class="bg-red-500 text-white text-[13px] px-2 py-0.5 rounded-full font-bold shadow-sm">0</span>
+                            </h4>
+                            <button onclick="loadPendingTasks()" data-i18n="admin_refresh" class="text-[13px] text-[var(--primary)] font-extrabold px-3 py-1.5 bg-white rounded-lg shadow-sm border border-blue-100 hover:scale-105 transition">🔄 새로고침</button>
+                        </div>
+                        <div id="pending-tasks-container" class="space-y-3 max-h-56 overflow-y-auto pr-2">
+                            <p class="text-[15px] text-[var(--text-muted)] font-bold text-center py-4"><span data-i18n="admin_no_pending">대기 중인 승인 요청이 없습니다.</span></p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
+                        <div class="ui-card p-4 md:p-6 text-center md:text-left"><p data-i18n="admin_stat_total" class="text-[13px] md:text-[15px] font-bold text-[var(--text-muted)] mb-2">총 등록 학생</p><p class="text-2xl md:text-3xl font-extrabold text-[var(--primary)]" id="stat-students">-</p></div>
+                        <div class="ui-card p-4 md:p-6 text-center md:text-left"><p data-i18n="admin_stat_active" class="text-[13px] md:text-[15px] font-bold text-[var(--text-muted)] mb-2">운영 프로그램</p><p class="text-2xl md:text-3xl font-extrabold text-[var(--text-main)]" id="stat-programs">-</p></div>
+                        <div class="ui-card p-4 md:p-6 text-center md:text-left"><p data-i18n="admin_stat_progress" class="text-[13px] md:text-[15px] font-bold text-[var(--text-muted)] mb-2">평균 진척도</p><p class="text-2xl md:text-3xl font-extrabold text-[var(--text-main)]" id="stat-progress">-</p></div>
+                        <div class="ui-card p-4 md:p-6 text-center md:text-left"><p data-i18n="admin_stat_billing" class="text-[13px] md:text-[15px] font-bold text-[var(--text-muted)] mb-2">이번 달 수납률</p><p class="text-2xl md:text-3xl font-extrabold text-[var(--text-main)]" id="stat-billing">-</p></div>
+                    </div>
+                    <div class="ui-card p-4 md:p-6 w-full lg:w-2/3">
+                        <h4 class="font-extrabold mb-6 text-[var(--text-main)] text-[17px] md:text-[19px]">📊 <span data-i18n="admin_chart_dist">📊 프로그램별 수강생 분포 현황</span></h4>
+                        <div class="w-full h-48 md:h-64 relative"><canvas id="barChart"></canvas></div>
+                        <div id="interp-barChart" class="mt-4 p-3 bg-white/50 dark:bg-gray-800/30 rounded-xl shadow-sm border border-[var(--border-color)] text-[14px] font-bold text-[var(--text-main)] transition hidden"></div>
+                    </div>
+
+                    <!-- 📊 추가 차트 섹션 (Plotly) -->
+                    <div class="ui-card p-4 md:p-6 mb-8">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                            <h4 class="font-extrabold text-[var(--text-main)] text-[17px] md:text-[19px]">📈 고급 분석 차트</h4>
+                            <div class="flex flex-wrap gap-2" id="chart-selector">
+                                <label class="text-[13px] font-bold text-[var(--text-muted)] flex items-center gap-1 cursor-pointer"><input type="checkbox" class="adv-chart-chk" value="donut" checked> <span data-i18n="adv_donut">🍩 전체출결</span></label>
+                                <label class="text-[13px] font-bold text-[var(--text-muted)] flex items-center gap-1 cursor-pointer"><input type="checkbox" class="adv-chart-chk" value="line" checked> <span data-i18n="adv_line">📈 성취도추이</span></label>
+                                <label class="text-[13px] font-bold text-[var(--text-muted)] flex items-center gap-1 cursor-pointer"><input type="checkbox" class="adv-chart-chk" value="heatmap"> <span data-i18n="adv_heat">🗺️ 출결히트맵</span></label>
+                                <label class="text-[13px] font-bold text-[var(--text-muted)] flex items-center gap-1 cursor-pointer"><input type="checkbox" class="adv-chart-chk" value="scatter"> <span data-i18n="adv_scatter">⚡ 피드백효과</span></label>
+                                <label class="text-[13px] font-bold text-[var(--text-muted)] flex items-center gap-1 cursor-pointer"><input type="checkbox" class="adv-chart-chk" value="stacked"> <span data-i18n="adv_stacked">📊 출결상세</span></label>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="adv-charts-grid">
+                            <div id="plotly-donut" class="w-full h-64 rounded-xl"></div>
+                            <div id="plotly-line" class="w-full h-64 rounded-xl"></div>
+                            <div id="plotly-heatmap" class="w-full h-64 rounded-xl hidden"></div>
+                            <div id="plotly-scatter" class="w-full h-64 rounded-xl hidden"></div>
+                            <div id="plotly-stacked" class="w-full h-64 rounded-xl hidden"></div>
+                        </div>
+                        <div id="interp-advCharts" class="mt-4 p-3 bg-white/50 dark:bg-gray-800/30 rounded-xl shadow-sm border border-[var(--border-color)] text-[14px] font-bold text-[var(--text-main)] transition" data-i18n="interp_adv_pos">🟢 긍정: (테스트) 전반적인 학생 성취도가 꾸준히 우상향하고 있어 긍정적입니다.</div>
+                    </div>
+
+                    <!-- 🤖 AI 분석 리포트 -->
+                    <div class="ui-card p-4 md:p-6 mb-8">
+                        <h4 data-i18n="admin_ai_report" class="font-extrabold mb-4 text-[var(--text-main)] text-[17px] md:text-[19px]">🤖 AI 경영 분석 리포트</h4>
+                        <div id="admin-ai-report" class="p-5 rounded-2xl text-[17px] font-bold leading-relaxed border-l-4 border-[var(--primary)]" style="box-shadow: var(--shadow-in);">
+                            <span data-i18n="admin_ai_analyzing">데이터를 분석하는 중입니다...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="finance">
+                    <div class="ui-card p-4 md:p-8 mb-8">
+                        <h4 data-i18n="admin_finance_new" class="font-extrabold mb-6 text-[var(--text-main)]">➕ 신규 결제 내역 추가</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
+                            <input type="text" id="bill-student" placeholder="대상 학생 이름" data-i18n-ph="admin_bill_student" class="ui-input">
+                            <select id="bill-program" class="ui-input appearance-none"><option value="수강료">수강료</option><option value="교재비">교재비</option><option value="재료비">재료비</option><option value="대관료">대관료</option><option value="기타수입">기타수입</option><option value="환불">환불</option></select>
+                            <input type="number" id="bill-amount" placeholder="결제 금액 (원)" data-i18n-ph="admin_bill_fee" class="ui-input">
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8"><select id="bill-method" class="ui-input appearance-none"><option value="카드결제"><span data-i18n="admin_bill_card">💳 카드결제</span></option><option value="계좌이체"><span data-i18n="admin_bill_bank">🏦 계좌이체</span></option><option value="현금"><span data-i18n="admin_bill_cash">💵 현금</span></option></select><input type="text" id="bill-note" placeholder="비고 (예: 3월 수강료)" data-i18n-ph="admin_bill_note" class="ui-input"></div>
+                        <div class="flex justify-end"><button id="btn-save-bill" data-i18n="admin_finance_save" class="ui-btn-primary w-full md:w-auto py-3 px-8 text-[17px]">💾 결제 내역 저장</button></div>
+                    </div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 data-i18n="admin_finance_db" class="font-extrabold text-[var(--text-main)]">📋 결제 내역 데이터베이스</h4>
+                        <button id="btn-export-billing" data-i18n="admin_finance_export" class="ui-btn py-2 px-3 md:px-4 text-[13px] md:text-[15px] flex items-center gap-2">📥 엑셀 다운로드</button>
+                    </div>
+                    <div class="ui-card overflow-hidden">
+                        <div class="overflow-x-auto p-2"><table id="table-billing"><thead><tr><th data-i18n="admin_table_date">결제일</th><th data-i18n="admin_table_name">학생명</th><th data-i18n="admin_table_item">항목</th><th data-i18n="admin_table_amount">금액</th><th data-i18n="admin_table_method">결제수단</th><th data-i18n="admin_table_remark">비고</th><th data-i18n="admin_table_manage">관리</th></tr></thead><tbody id="billing-list-body"><tr><td colspan="7" class="text-center text-[var(--text-muted)] py-8"><span data-i18n="admin_table_loading">데이터 로딩 중...</span></td></tr></tbody></table></div>
+                    </div>
+
+                    <!-- 재무 통계 차트 -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                        <div class="ui-card p-4 md:p-6"><h4 class="font-extrabold mb-4 text-[var(--text-main)] text-[17px]">🍩 <span data-i18n="admin_chart_pie">항목별 매출 구성</span></h4><div id="finance-pie" class="w-full h-56"></div><div id="interp-finance-pie" class="mt-3 p-3 bg-white/50 dark:bg-gray-800/30 rounded-xl shadow-sm border border-[var(--border-color)] text-[14px] font-bold text-[var(--text-main)] hidden"></div></div>
+                        <div class="ui-card p-4 md:p-6"><h4 class="font-extrabold mb-4 text-[var(--text-main)] text-[17px]">📈 <span data-i18n="admin_chart_line">일자별 매출 추이</span></h4><div id="finance-line" class="w-full h-56"></div><div id="interp-finance-line" class="mt-3 p-3 bg-white/50 dark:bg-gray-800/30 rounded-xl shadow-sm border border-[var(--border-color)] text-[14px] font-bold text-[var(--text-main)] hidden"></div></div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="comprehensive">
+                    <div class="ui-card p-4 md:p-6 mb-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                            <input type="text" id="filter-name" placeholder="🔍 학생명 검색..." data-i18n-ph="admin_filter_name" class="ui-input">
+                            <select id="filter-program" class="ui-input appearance-none"><option value=""><span data-i18n="admin_filter_prog">📁 전체 프로그램</span></option></select>
+                            <select id="filter-role" class="ui-input appearance-none"><option value=""><span data-i18n="admin_filter_role">🎯 전체 역할</span></option><option value="student"><span data-i18n="admin_role_student">🎓 수강생</span></option><option value="parent"><span data-i18n="admin_role_parent">👨‍👩‍👧‍👦 학부모</span></option></select>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center mb-4 px-2">
+                        <p class="text-[15px] md:text-[17px] font-bold text-[var(--text-muted)]"><span data-i18n="admin_found_1">총</span> <b id="student-count" class="text-[var(--primary)] text-[19px] md:text-lg">0</b> <span data-i18n="admin_found_2">명 찾음</span></p>
+                        <button id="btn-export-students" data-i18n="admin_comp_export" class="ui-btn py-2 px-3 md:px-4 text-[13px] md:text-[15px] flex items-center gap-2">📥 명단 다운로드</button>
+                    </div>
+                    <div class="ui-card overflow-hidden">
+                        <div class="overflow-x-auto p-2"><table id="table-students"><thead><tr><th data-i18n="admin_table_name_only">이름</th><th data-i18n="admin_table_pname">참여 프로그램</th><th data-i18n="admin_table_prole">역할(Role)</th></tr></thead><tbody id="student-list-body"><tr><td colspan="3" class="text-center text-[var(--text-muted)] py-8"><span data-i18n="admin_table_loading">데이터 로딩 중...</span></td></tr></tbody></table></div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="new-class">
+                    <div class="ui-card p-6 md:p-10 max-w-4xl mx-auto md:mx-0">
+                        <div class="flex items-center gap-3 mb-8"><span class="text-2xl">✨</span><h4 data-i18n="admin_new_program" class="font-extrabold text-[var(--text-main)] text-xl">새로운 프로그램 기획</h4></div>
+                        
+                        <!-- <span data-i18n="admin_new_step1">1. 미디어 첨부</span> -->
+                        <div class="mb-10">
+                            <h5 class="text-[17px] font-extrabold text-[var(--primary)] border-b border-gray-200 dark:border-gray-700/50 pb-2 mb-4 flex items-center gap-2"><span class="text-lg">🖼️</span> <span data-i18n="admin_new_step1">1. 미디어 첨부</span></h5>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-[var(--border-color)] shadow-sm">
+                                <div>
+                                    <label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-1"><span data-i18n="admin_new_yt">유튜브 영상 링크 (옵션)</span></label>
+                                    <input type="text" id="prog-yt" placeholder="https://youtu.be/..." class="ui-input border border-[var(--border-color)] bg-white shadow-inner text-[17px]">
+                                </div>
+                                <div>
+                                    <label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-1"><span data-i18n="admin_new_poster">포스터 이미지 (1MB 이하 필수)</span></label>
+                                    <div class="relative w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition bg-white dark:bg-gray-900 shadow-sm" onclick="document.getElementById('prog-img').click()">
+                                        <input type="file" id="prog-img" accept="image/*" class="hidden" onchange="previewImage(this, 'prog-img-preview', 'prog-img-text')">
+                                        <div class="flex flex-col items-center justify-center space-y-2 pointer-events-none">
+                                            <span class="text-2xl">☁️</span>
+                                            <p id="prog-img-text" class="text-[14px] font-bold text-gray-400"><span data-i18n="admin_new_upload">클릭하여 이미지 업로드<br>(Drag & Drop 불가)</span></p>
+                                        </div>
+                                    </div>
+                                    <div id="prog-img-preview" class="hidden mt-3 w-full h-40 bg-contain bg-no-repeat bg-center rounded-xl shadow-sm border border-gray-200 dark:border-gray-700"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- <span data-i18n="admin_new_step2">2. 프로그램 기본 정보</span> -->
+                        <div class="mb-10">
+                            <h5 class="text-[17px] font-extrabold text-[var(--primary)] border-b border-gray-200 dark:border-gray-700/50 pb-2 mb-4 flex items-center gap-2"><span class="text-lg">📋</span> <span data-i18n="admin_new_step2">2. 프로그램 기본 정보</span></h5>
+                            <div class="grid grid-cols-[1fr_auto] gap-4 mb-4">
+                                <div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-1"><span data-i18n="admin_new_pname">프로그램 명</span></label><input type="text" id="prog-name" placeholder="예: 고독한 독서가" data-i18n-ph="admin_new_pname" class="ui-input text-[17px] font-bold border border-[var(--border-color)] bg-white shadow-inner"></div>
+                                <div><label class="block text-[13px] font-bold text-[var(--text-muted)] mb-2 text-center w-[60px]" data-i18n="admin_new_color">캘린더 색상</label><input type="color" id="prog-color" value="#10B981" class="w-[60px] h-[46px] rounded-xl cursor-pointer border-none p-0 outline-none shadow-sm block bg-transparent"></div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div><label class="block text-[14px] font-bold text-[var(--text-muted)] mb-1 pl-1"><span data-i18n="admin_new_start">모집 시작일</span></label><input type="date" id="prog-start" class="ui-input text-[17px] border border-[var(--border-color)] bg-white shadow-inner"></div>
+                                <div><label class="block text-[14px] font-bold text-[var(--text-muted)] mb-1 pl-1"><span data-i18n="admin_new_end">모집 종료일</span></label><input type="date" id="prog-end" class="ui-input text-[17px] border border-[var(--border-color)] bg-white shadow-inner"></div>
+                                <div><label class="block text-[14px] font-bold text-[var(--text-muted)] mb-1 pl-1"><span data-i18n="admin_new_max">모집 정원 (명)</span></label><input type="number" id="prog-max" value="10" class="ui-input text-[17px] border border-[var(--border-color)] bg-white shadow-inner"></div>
+                            </div>
+                            <div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-1"><span data-i18n="admin_new_desc">프로그램 한줄 소개</span></label><textarea id="prog-desc" class="ui-input h-16 resize-none text-[17px] border border-[var(--border-color)] bg-white shadow-inner"></textarea></div>
+                        </div>
+
+                        <!-- <span data-i18n="admin_new_step3">3. 워크플로우 기획</span> -->
+                        <div class="mb-10">
+                            <h5 class="text-[17px] font-extrabold text-[var(--primary)] border-b border-gray-200 dark:border-gray-700/50 pb-2 mb-4 flex items-center gap-2"><span class="text-lg">🗺️</span> <span data-i18n="admin_new_step3">3. 워크플로우 기획</span></h5>
+                            <div class="p-5 rounded-2xl border border-[var(--border-color)]" style="background-color: var(--surface); box-shadow: var(--shadow-in);">
+                                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-3 gap-3">
+                                    <div><p class="text-[15px] font-extrabold text-[var(--primary)] mb-1">💡 <span data-i18n="admin_new_guide">세부 일정 표기 가이드</span></p><p class="text-[13px] font-bold text-[var(--text-muted)]"><span data-i18n="admin_new_guide_desc">시간은 빈틈없이 소괄호( ) 안에 적어주세요! (예: 2026-03-23 (14:00) : OT)</span></p></div>
+                                    <button type="button" onclick="fillExampleWorkflow('prog-workflow')" class="text-[14px] bg-[var(--surface-alt)] text-[var(--primary)] px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 focus:scale-95 font-extrabold whitespace-nowrap transition"><span data-i18n="admin_new_fill_ex">✏️ 예시 양식 채우기</span></button>
+                                </div>
+                                <textarea id="prog-workflow" class="w-full bg-white/50 dark:bg-gray-800/50 outline-none font-bold text-[17px] text-[var(--text-main)] h-40 resize-none p-4 rounded-xl focus:bg-white dark:focus:bg-gray-700 transition leading-relaxed shadow-inner border border-transparent focus:border-[var(--primary)]"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end"><button id="btn-save-prog" class="ui-btn-primary w-full md:w-auto py-3.5 px-12 text-[17px] font-extrabold shadow-md">🚀 신규 프로그램 개설</button></div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="edit-info">
+                    <div class="ui-card p-6 md:p-10 max-w-4xl mx-auto md:mx-0">
+                        <div class="flex items-center gap-3 mb-8"><span class="text-2xl">⚙️</span><h4 data-i18n="admin_edit_title" class="font-extrabold text-[var(--text-main)] text-xl">등록된 프로그램 정보 수정</h4></div>
+                        <div class="mb-8 p-5 rounded-2xl border border-[var(--border-color)] bg-gray-50/50 dark:bg-gray-800/20 shadow-sm">
+                            <label class="block text-[15px] font-extrabold text-[var(--primary)] mb-2 pl-1">수정할 프로그램 선택</label>
+                            <select id="edit-prog-select" class="ui-input appearance-none font-extrabold text-[var(--text-main)] border border-[var(--border-color)] shadow-inner bg-white"><option value="">데이터를 불러오는 중입니다...</option></select>
+                        </div>
+                        <div id="edit-form-area" class="hidden opacity-0 transition-opacity duration-500">
+                            <!-- <span data-i18n="admin_new_step1">1. 미디어 첨부</span> 수정 -->
+                            <div class="mb-10">
+                                <h5 class="text-[17px] font-extrabold text-[var(--primary)] border-b border-gray-200 dark:border-gray-700/50 pb-2 mb-4 flex items-center gap-2"><span class="text-lg">🖼️</span> <span data-i18n="admin_new_step1">1. 미디어 첨부</span> 수정</h5>
+                                <div id="edit-prog-img-status" class="mb-4 text-[14px] font-bold text-green-600 bg-green-50 px-3 py-2 rounded-lg border border-green-200 hidden w-max shadow-sm">✅ 현재 이미지가 등록되어 있습니다.</div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-2xl border border-[var(--border-color)] shadow-sm">
+                                    <div>
+                                        <label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-1">유튜브 영상 링크</label>
+                                        <input type="text" id="edit-prog-yt" placeholder="https://youtu.be/..." class="ui-input border border-[var(--border-color)] bg-white shadow-inner text-[17px]">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-1">새 포스터 이미지 (1MB 이하 권장)</label>
+                                        <div class="relative w-full border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition bg-white dark:bg-gray-900 shadow-sm" onclick="document.getElementById('edit-prog-img').click()">
+                                            <input type="file" id="edit-prog-img" accept="image/*" class="hidden" onchange="previewImage(this, 'edit-prog-img-preview', 'edit-prog-img-text')">
+                                            <div class="flex flex-col items-center justify-center space-y-2 pointer-events-none">
+                                                <span class="text-2xl">☁️</span>
+                                                <p id="edit-prog-img-text" class="text-[14px] font-bold text-gray-400">클릭하여 새 이미지 업로드<br>(Drag & Drop 불가)</p>
+                                            </div>
+                                        </div>
+                                        <div id="edit-prog-img-preview" class="hidden mt-3 w-full h-40 bg-contain bg-no-repeat bg-center rounded-xl shadow-sm border border-gray-200 dark:border-gray-700"></div>
+                                        
+                                        <div class="mt-4 flex items-center gap-2 bg-white p-2 rounded-lg border border-gray-200 shadow-sm">
+                                            <input type="checkbox" id="edit-prog-img-delete" class="w-4 h-4 rounded border-gray-300 text-red-500 focus:ring-red-500">
+                                            <label for="edit-prog-img-delete" class="text-[15px] font-extrabold text-red-500 cursor-pointer">등록된 미디어 완전히 삭제하기</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- <span data-i18n="admin_new_step2">2. 프로그램 기본 정보</span> 수정 -->
+                            <div class="mb-10">
+                                <h5 class="text-[17px] font-extrabold text-[var(--primary)] border-b border-gray-200 dark:border-gray-700/50 pb-2 mb-4 flex items-center gap-2"><span class="text-lg">📋</span> <span data-i18n="admin_new_step2">2. 프로그램 기본 정보</span> 수정</h5>
+                                <div class="grid grid-cols-[1fr_auto] gap-4 mb-4">
+                                    <div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-1"><span data-i18n="admin_new_pname">프로그램 명</span> (수정 불가)</label><input type="text" id="edit-prog-name" class="ui-input text-[17px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 cursor-not-allowed border-[var(--border-color)] shadow-inner" disabled></div>
+                                    <div><label class="block text-[13px] font-bold text-[var(--text-muted)] mb-2 text-center w-[60px]" data-i18n="admin_new_color">캘린더 색상</label><input type="color" id="edit-prog-color" value="#10B981" class="w-[60px] h-[46px] rounded-xl cursor-pointer border-none p-0 outline-none shadow-sm block bg-transparent"></div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                    <div><label class="block text-[14px] font-bold text-[var(--text-muted)] mb-1 pl-1"><span data-i18n="admin_new_start">모집 시작일</span> 수정</label><input type="date" id="edit-prog-start" class="ui-input text-[17px] border border-[var(--border-color)] bg-white shadow-inner"></div>
+                                    <div><label class="block text-[14px] font-bold text-[var(--text-muted)] mb-1 pl-1"><span data-i18n="admin_new_end">모집 종료일</span> 수정</label><input type="date" id="edit-prog-end" class="ui-input text-[17px] border border-[var(--border-color)] bg-white shadow-inner"></div>
+                                    <div><label class="block text-[14px] font-bold text-[var(--text-muted)] mb-1 pl-1">모집 정원 수정 (명)</label><input type="number" id="edit-prog-max" class="ui-input text-[17px] border border-[var(--border-color)] bg-white shadow-inner"></div>
+                                </div>
+                                <div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-1">상세 내용 (한줄 소개)</label><textarea id="edit-prog-desc" class="ui-input h-16 resize-none text-[17px] border border-[var(--border-color)] bg-white shadow-inner"></textarea></div>
+                            </div>
+
+                            <!-- 3. 워크플로우 수정 -->
+                            <div class="mb-10">
+                                <h5 class="text-[17px] font-extrabold text-[var(--primary)] border-b border-gray-200 dark:border-gray-700/50 pb-2 mb-4 flex items-center gap-2"><span class="text-lg">🗺️</span> 3. 워크플로우 수정</h5>
+                                <div class="p-5 rounded-2xl border border-[var(--border-color)]" style="background-color: var(--surface); box-shadow: var(--shadow-in);">
+                                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-end mb-3 gap-3">
+                                        <div><p class="text-[15px] font-extrabold text-[var(--primary)] mb-1">💡 <span data-i18n="admin_new_guide">세부 일정 표기 가이드</span></p><p class="text-[13px] font-bold text-[var(--text-muted)]"><span data-i18n="admin_new_guide_desc">시간은 빈틈없이 소괄호( ) 안에 적어주세요! (예: 2026-03-23 (14:00) : OT)</span></p></div>
+                                        <button type="button" onclick="fillExampleWorkflow('edit-prog-workflow')" class="text-[14px] bg-[var(--surface-alt)] text-[var(--primary)] px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 focus:scale-95 font-extrabold whitespace-nowrap transition"><span data-i18n="admin_new_fill_ex">✏️ 예시 양식 채우기</span></button>
+                                    </div>
+                                    <textarea id="edit-prog-workflow" class="w-full bg-white/50 dark:bg-gray-800/50 outline-none font-bold text-[17px] text-[var(--text-main)] h-40 resize-none p-4 rounded-xl focus:bg-white dark:focus:bg-gray-700 transition leading-relaxed shadow-inner border border-transparent focus:border-[var(--primary)]"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700/50">
+                                <button id="btn-delete-prog" class="bg-red-50 hover:bg-red-100 text-red-600 font-extrabold py-3.5 px-6 rounded-xl border border-red-200 transition text-[17px] shadow-sm md:mr-auto">🗑️ 프로그램 완전 삭제</button>
+                                <button id="btn-update-prog" class="ui-btn-primary py-3.5 px-10 text-[17px] font-extrabold shadow-md">💾 수정 내역 저장 완료</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="parent-crm"><div class="ui-card p-4 md:p-8 max-w-2xl mx-auto md:mx-0"><h4 class="font-extrabold mb-6 text-[var(--text-main)]"><span data-i18n="admin_role_parent">👨‍👩‍👧‍👦 학부모</span> CRM (가족 계정 연동)</h4><div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6"><div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-2">학부모 대표 이름</label><input type="text" id="parent-name" placeholder="이름 입력" class="ui-input"></div><div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-2">비밀번호 (4자리 PIN)</label><input type="password" id="parent-pin" placeholder="PIN 입력" class="ui-input"></div></div><div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6"><div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-2">관계</label><select id="parent-relation" class="ui-input appearance-none"><option>부</option><option>모</option><option>조부</option><option>조모</option><option>기타</option></select></div><div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-2">연락처</label><input type="tel" id="parent-phone" placeholder="010-0000-0000" class="ui-input"></div><div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-2">결제 정보</label><input type="text" id="parent-payment" placeholder="카드번호 또는 계좌" class="ui-input"></div></div><div class="mb-8"><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-2">연결할 학생 이름</label><input type="text" id="parent-child" placeholder="자녀 이름 입력 (다자녀는 쉼표로 구분)" class="ui-input"></div><button id="btn-save-parent" class="ui-btn-primary w-full py-4">새로운 계정 생성 및 연동</button>
+                    <div class="mt-8 border-t border-gray-200 pt-6"><h5 class="font-extrabold text-[17px] text-[var(--text-main)] mb-4">등록된 학부모 계정</h5><div id="parent-accounts-list" class="space-y-3"><p class="text-[15px] text-[var(--text-muted)] text-center py-4"><span data-i18n="admin_table_loading">데이터 로딩 중...</span></p></div></div>
+                </div></div>
+                <div class="tab-content" id="attendance">
+                    <div class="ui-card p-4 md:p-8 max-w-5xl mx-auto md:mx-0">
+                        <div class="flex items-center gap-2 mb-6"><span class="bg-green-100 text-green-600 p-1.5 rounded-lg text-[17px]">✅</span><h4 data-i18n="admin_att_title" class="font-extrabold text-[var(--text-main)] text-lg">프로그램별 출석 관리</h4></div>
+                        
+                        <div class="mb-6 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-2xl border border-gray-200 dark:border-gray-700/50">
+                            <label class="block text-[15px] font-extrabold text-[var(--primary)] mb-2 pl-2">출석 관리 대상 프로그램</label>
+                            <select id="att-global-program" class="ui-input appearance-none font-bold text-[var(--text-main)]"><option value="">============= 프로그램을 선택하세요 =============</option></select>
+                        </div>
+
+                        <!-- 💡 서브 탭 메뉴 -->
+                        <div class="flex gap-2 bg-surface p-1 rounded-xl w-max border border-[var(--border-color)] shadow-inner overflow-x-auto max-w-full mb-6">
+                            <button id="subbtn-att-daily" class="att-sub-btn active text-[15px] font-extrabold px-3 py-2 rounded-lg whitespace-nowrap transition bg-white shadow-sm text-[var(--primary)]" onclick="switchAttTab('daily')">📅 일일 출석 입력</button>
+                            <button id="subbtn-att-viz" class="att-sub-btn text-[15px] font-extrabold px-3 py-2 rounded-lg whitespace-nowrap transition bg-transparent text-[var(--text-muted)] hover:bg-gray-100/50" onclick="switchAttTab('viz')">📊 전체 출석 현황 & 시각화</button>
+                            <button id="subbtn-att-edit" class="att-sub-btn text-[15px] font-extrabold px-3 py-2 rounded-lg whitespace-nowrap transition bg-transparent text-[var(--text-muted)] hover:bg-gray-100/50" onclick="switchAttTab('edit')">✏️ 개별 기록 수정/삭제</button>
+                        </div>
+                        <div class="w-full h-[1px] bg-[var(--border-color)] mb-6"></div>
+
+                        <!-- 탭 1: 일일 출석 입력 -->
+                        <div id="att-tab-daily" class="att-sub-content">
+                            <div class="mb-4">
+                                <label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-2">출석을 기록할 날짜 선택</label>
+                                <input type="date" id="att-date" class="ui-input">
+                            </div>
+                            <div class="overflow-x-auto mb-6 border border-[var(--border-color)] rounded-xl pt-2">
+                                <table class="w-full">
+                                    <thead><tr class="text-left text-[15px] text-[var(--text-muted)] border-b border-[var(--border-color)] p-2"><th class="w-1/4 p-3">학생명 (역할)</th><th class="w-1/2 p-3">상태</th><th class="w-1/4 p-3">비고</th></tr></thead>
+                                    <tbody id="attendance-list-body"><tr><td colspan="3" class="text-center text-[var(--text-muted)] py-8 font-bold text-[17px]"><span data-i18n="admin_att_sel_prog_first">프로그램을 먼저 선택하세요.</span></td></tr></tbody>
+                                </table>
+                            </div>
+                            <div class="flex justify-end"><button id="btn-save-attendance" class="bg-red-500 hover:bg-red-600 text-white font-extrabold rounded-xl shadow-md transition w-full md:w-auto py-3 px-10">💾 출석 저장</button></div>
+                        </div>
+
+                        <!-- 탭 2: 전체 현황 & 시각화 -->
+                        <div id="att-tab-viz" class="att-sub-content hidden">
+                            <h5 class="text-[17px] font-extrabold text-[var(--text-main)] mb-4">학생별 누적 출결 현황</h5>
+                            <div class="w-full h-72 md:h-96 relative flex items-center justify-center bg-gray-50 dark:bg-gray-800/30 rounded-2xl border border-[var(--border-color)]">
+                                <canvas id="attVizChart"></canvas>
+                                <div id="attVizEmpty" class="absolute inset-0 flex items-center justify-center text-[17px] font-bold text-mut hidden">데이터가 없습니다.</div>
+                            </div>
+                            <div id="interp-attViz" class="mt-4 p-3 bg-white/50 dark:bg-gray-800/30 rounded-xl shadow-sm border border-[var(--border-color)] text-[14px] font-bold text-[var(--text-main)] hidden"></div>
+                        </div>
+
+                        <!-- 탭 3: 수정/삭제 -->
+                        <div id="att-tab-edit" class="att-sub-content hidden">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
+                                <div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-2">수정할 학생 선택</label><select id="edit-att-student" class="ui-input appearance-none bg-no-repeat bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M7%2010L12%2015L17%2010%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[position:right_0.75rem_center] pr-10 hover:bg-white"><option value="">프로그램을 먼저 선택하세요</option></select></div>
+                                <div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-2">날짜 선택</label><select id="edit-att-date" class="ui-input appearance-none bg-no-repeat bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M7%2010L12%2015L17%2010%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[position:right_0.75rem_center] pr-10 hover:bg-white"><option value="">학생을 먼저 선택하세요</option></select></div>
+                            </div>
+                            <div class="bg-[var(--surface-alt)] p-4 md:p-6 rounded-2xl border border-[var(--border-color)] mb-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                    <div><label class="block text-[14px] font-bold text-[var(--text-muted)] mb-2 pl-2">상태</label><select id="edit-att-status" class="ui-input appearance-none bg-no-repeat bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M7%2010L12%2015L17%2010%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem] bg-[position:right_0.75rem_center] pr-10 hover:bg-white"><option value="출석">출석 🟢</option><option value="지각">지각 🟡</option><option value="결석">결석 🔴</option><option value="병결">병결 🏥</option></select></div>
+                                    <div><label class="block text-[14px] font-bold text-[var(--text-muted)] mb-2 pl-2">비고</label><input type="text" id="edit-att-note" class="ui-input" placeholder="사유 입력 (선택)"></div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center gap-3">
+                                <button id="btn-delete-att" class="bg-white border border-gray-200 hover:bg-gray-50 text-gray-500 font-bold py-3 px-6 rounded-xl transition w-1/3">🗑️ 기록 삭제</button>
+                                <button id="btn-update-att" class="bg-red-500 hover:bg-red-600 text-white font-extrabold py-3 px-6 rounded-xl shadow-md transition w-2/3">💾 기록 수정</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tab-content" id="evaluation">
+                    <div class="ui-card p-4 md:p-8 max-w-4xl mx-auto md:mx-0">
+                        <h4 data-i18n="admin_eval_title" class="font-extrabold mb-6 text-[var(--text-main)]">✍️ 학생 평가 및 피드백 전송</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
+                            <div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-2">대상 학생 검색</label><input type="text" id="eval-student-search" placeholder="학생 이름을 입력하세요" class="ui-input"></div>
+                            <div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-2"><span data-i18n="admin_eval_stat">선택된 학생</span></label><div id="eval-selected-student" class="ui-input bg-[var(--surface)] text-[var(--text-muted)]" data-i18n="admin_eval_empty">검색 후 선택해주세요</div></div>
+                        </div>
+                        <div class="p-4 rounded-2xl mb-6" style="background-color: var(--surface); box-shadow: var(--shadow-in);">
+                            <p class="text-[15px] font-bold text-[var(--text-muted)] mb-4">🎯 핵심 역량 평가 (1~100점)</p>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div><label class="text-[13px] font-bold text-[var(--text-muted)]">실행력</label><input type="number" id="eval-score-task" min="1" max="100" value="100" class="ui-input mt-1"></div>
+                                <div><label class="text-[13px] font-bold text-[var(--text-muted)]">전문성</label><input type="number" id="eval-score-prof" min="1" max="100" value="100" class="ui-input mt-1"></div>
+                                <div><label class="text-[13px] font-bold text-[var(--text-muted)]">성실성</label><input type="number" id="eval-score-att" min="1" max="100" value="100" class="ui-input mt-1"></div>
+                                <div><label class="text-[13px] font-bold text-[var(--text-muted)]">소통력</label><input type="number" id="eval-score-comm" min="1" max="100" value="100" class="ui-input mt-1"></div>
+                            </div>
+                        </div>
+                        <div class="mb-6"><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-2">💬 선생님 코멘트</label><textarea id="eval-comment" placeholder="활동에 대한 피드백을 적어주세요." class="ui-input h-32 resize-none"></textarea></div>
+                        <div class="flex justify-end"><button id="btn-save-evaluation" class="ui-btn-primary w-full md:w-auto py-3 px-10">🚀 피드백 전송하기</button></div>
+                    </div>
+                </div>
+
+                <!-- 💬 1:1 상담 탭 -->
+                <div class="tab-content" id="chat-mgmt">
+                    <div class="ui-card p-4 md:p-8 max-w-4xl mx-auto md:mx-0">
+                        <h4 data-i18n="admin_chat_mgmt_title" class="font-extrabold mb-6 text-[var(--text-main)]">💬 1:1 상담 (학생/학부모 채팅 관리)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
+                            <div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-2"><span data-i18n="admin_chat_target">대화 대상</span> 선택</label><select id="chat-target" class="ui-input appearance-none"><option value="">대상을 선택하세요</option></select></div>
+                            <div><label class="block text-[15px] font-bold text-[var(--text-muted)] mb-2 pl-2"><span data-i18n="admin_chat_ch">채널 선택</span></label>
+                                <div class="flex gap-2"><label class="flex items-center gap-1 text-[15px] font-bold"><input type="radio" name="chat-channel" value="student" checked> 학생</label><label class="flex items-center gap-1 text-[15px] font-bold"><input type="radio" name="chat-channel" value="parent"> 학부모</label></div>
+                            </div>
+                            <div class="flex items-end"><button onclick="loadChatHistory()" class="ui-btn-primary w-full py-3 text-[17px]"><span data-i18n="admin_chat_load">💬 대화 불러오기</span></button></div>
+                        </div>
+                        <div id="admin-chat-box" class="p-4 rounded-2xl space-y-3 max-h-72 overflow-y-auto mb-4" style="box-shadow: var(--shadow-in);">
+                            <p class="text-[15px] text-[var(--text-muted)] font-bold text-center py-4" data-i18n="chat_select">대상을 선택하고 대화를 불러오세요.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" id="admin-chat-input" placeholder="메시지 입력..." class="ui-input flex-1">
+                            <button onclick="adminSendChat()" class="ui-btn-primary py-3 px-6 text-[17px]"><span data-i18n="admin_chat_send">전송</span></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 🔐 계정 관리 탭 -->
+                <div class="tab-content" id="account-mgmt">
+                    <div class="max-w-4xl mx-auto md:mx-0 space-y-8">
+                        <div class="ui-card p-4 md:p-8">
+                            <h4 data-i18n="admin_acct_title" class="font-extrabold mb-6 text-[var(--text-main)]">🔐 계정 및 시스템 설정</h4>
+                            <div class="mb-6 p-4 rounded-xl border border-[var(--border-color)] bg-white/30 dark:bg-gray-800/20">
+                                <label class="block text-[15px] font-extrabold text-[var(--primary)] mb-3">🔍 전체 디스플레이 크기 (Zoom)</label>
+                                <div class="flex items-center gap-4">
+                                    <input type="range" id="zoom-slider" min="80" max="150" step="5" value="100" class="flex-1 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                    <span id="zoom-val" class="font-extrabold text-[15px] w-12 text-center">100%</span>
+                                </div>
+                                <p class="text-[13px] text-gray-500 mt-2 font-bold flex items-center gap-1">모바일 및 브라우저에서 디자인이 깨지지 않는 선에서 크기를 조절해보세요!</p>
+                            </div>
+                            <h5 class="font-bold text-[15px] mb-3 text-[var(--text-main)]">비밀번호 설정</h5>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <input type="password" id="acct-cur-pin" placeholder="현재 비밀번호" data-i18n-ph="admin_pw_cur" class="ui-input">
+                                <input type="password" id="acct-new-pin" placeholder="새 비밀번호" data-i18n-ph="admin_pw_new" class="ui-input">
+                            </div>
+                            <button onclick="changeAdminPw()" class="ui-btn-primary py-3 px-8 text-[17px]"><span data-i18n="admin_pw_btn">비밀번호 변경</span></button>
+                        </div>
+                        <div class="ui-card p-4 md:p-8">
+                            <h4 class="font-extrabold mb-6 text-[var(--text-main)]"><span data-i18n="admin_edit_student">👤 구성원 정보 수정 / 퇴소</span></h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <select id="acct-student-select" class="ui-input appearance-none"><option value="">구성원 선택 (학생/학부모/선생님)</option></select>
+                                <input type="text" id="acct-new-name" placeholder="새 이름 (변경 시)" data-i18n-ph="admin_edit_sname" class="ui-input">
+                                <input type="password" id="acct-new-student-pin" placeholder="새 PIN (변경 시)" data-i18n-ph="admin_edit_spin" class="ui-input">
+                            </div>
+                            <div class="flex gap-3">
+                                <button onclick="updateStudentInfo()" class="ui-btn-primary py-3 px-8 text-[17px]"><span data-i18n="admin_edit_btnsave">💾 정보 수정</span></button>
+                                <button onclick="deleteStudent()" class="bg-red-50 hover:bg-red-100 text-red-600 font-extrabold py-3 px-8 rounded-xl border border-red-200 text-[17px]"><span data-i18n="admin_edit_kick">🗑️ 강제 퇴소</span></button>
+                            </div>
+                        </div>
+                        <div class="ui-card p-4 md:p-8">
+                            <h4 class="font-extrabold mb-6 text-[var(--text-main)]">👨‍💼 직원(선생님/행정) 등록</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <input type="text" id="staff-name" placeholder="직원 이름" class="ui-input">
+                                <input type="password" id="staff-pin" placeholder="로그인 PIN" class="ui-input">
+                                <select id="staff-role" class="ui-input appearance-none">
+                                    <option value="teacher">👨‍🏫 선생님 (강사)</option>
+                                    <option value="admin_staff">🏢 행정 직원</option>
+                                </select>
+                            </div>
+                            <button onclick="addStaff()" class="ui-btn-primary py-3 px-8 text-[17px]">➕ 직원 등록</button>
+                        </div>
+                        <div class="ui-card p-4 md:p-8">
+                            <h4 class="font-extrabold mb-6 text-[var(--text-main)]"><span data-i18n="admin_dl_title">📥 다운로드 경로 설정</span></h4>
+                            <p class="text-[13px] font-bold text-[var(--text-muted)] mb-4"><span data-i18n="admin_dl_desc">파일(CSV/JSON) 다운로드 시 정보를 저장할 기본 경로를 설정합니다.</span></p>
+                            <div class="flex gap-2 mb-4">
+                                <input type="text" id="acct-download-path" placeholder="예: C:\\Users\\Downloads" class="ui-input flex-1">
+                                <button onclick="saveDownloadPath()" class="ui-btn-primary py-3 px-6 text-[17px]">💾 경로 저장</button>
+                            </div>
+                            <p id="path-save-status" class="text-[13px] text-[var(--primary)] font-bold hidden"><span data-i18n="admin_dl_success">✅ 경로가 저장되었습니다. 다음 변경 전까지 유지됩니다.</span></p>
+                        </div>
+                        <div class="ui-card p-4 md:p-8">
+                            <h4 class="font-extrabold mb-6 text-[var(--text-main)]"><span data-i18n="admin_bk_title">📦 전체 데이터 백업</span></h4>
+                            <p class="text-[15px] text-[var(--text-muted)] font-bold mb-4"><span data-i18n="admin_bk_desc">모든 데이터를 JSON 형식으로 다운로드합니다.</span></p>
+                            <button onclick="downloadBackup()" class="ui-btn-primary py-3 px-8 text-[17px]"><span data-i18n="admin_bk_btn">📥 JSON 백업 다운로드</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const sidebar = document.getElementById('sidebar'), overlay = document.getElementById('sidebar-overlay');
+        function toggleSidebar() { sidebar.classList.toggle('-translate-x-full'); overlay.classList.toggle('hidden'); }
+        document.getElementById('mobile-menu-btn').addEventListener('click', toggleSidebar);
+        document.getElementById('close-sidebar-btn').addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        function setTheme(theme) {
+            if (theme === 'mint') document.documentElement.removeAttribute('data-theme');
+            else document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('youth_canvas_admin_theme', theme);
+            window.updateAdminUI();
+        }
+        const savedTheme = localStorage.getItem('youth_canvas_admin_theme');
+        if (savedTheme) setTheme(savedTheme);
+
+        window.updateAdminUI = function() {
+            if (window.allStudentsData) {
+                window.renderDynamicChart(window.allStudentsData);
+                if(window.renderStudentsTable) window.renderStudentsTable(window.allStudentsData);
+            }
+            loadAdvCharts();
+            loadFinanceStats();
+            if (window.attVizData) loadAttendanceChart(window.attVizData.progName, window.attVizData.dataStore);
+            const aiReport = document.getElementById('admin-ai-report');
+            if (aiReport && aiReport.dataset.completed === "true" && window.latestMLData) {
+                if(window.latestMLData.status === "success") {
+                    aiReport.innerHTML = formatI18n('ml_success', window.latestMLData);
+                } else if(window.latestMLData.status === "insufficient_data") {
+                    aiReport.innerHTML = getI18nText('ml_insufficient');
+                } else {
+                    aiReport.innerHTML = getI18nText('ml_error');
+                }
+            }
+            
+            // Tab title update
+            const titleEl = document.getElementById('current-tab-title');
+            if(titleEl) {
+                const tId = titleEl.getAttribute('data-tab-id') || 'dashboard';
+                titleEl.innerText = getI18nText('tab_' + tId).replace(/[^\w\s가-힣]/g, '').trim();
+            }
+        };
+
+        window.fillExampleWorkflow = function(targetId) {
+            const el = document.getElementById(targetId);
+            el.value = `2026-04-12 ~ 04-18  [14:00~16:00]  OT & 책선정 (준비물: 편한복장)\n- 조 편성 : 우리 조의 이름은 "###"이에요\n- 역할 : "###"조에서 나의 역할은 "$$$"이에요\n- 내가 선정한 책 : 2권의 책 & 이유 찾기\n2026-04-19 ~ 04-25  [14:00~16:00]  1차 독서 + 나눔`;
+            el.focus();
+        };
+
+        window.previewImage = function(inputElem, previewId, textId) {
+            if(inputElem.files && inputElem.files[0]) {
+                const file = inputElem.files[0];
+                if(file.size > 2 * 1024 * 1024) { alert("파일 용량이 너무 큽니다 (2MB 이하 권장)."); inputElem.value = ''; return; }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById(previewId);
+                    preview.style.backgroundImage = `url(${e.target.result})`;
+                    preview.classList.remove('hidden');
+                    document.getElementById(textId).innerText = "이미지 교체 (클릭)";
+                }
+                reader.readAsDataURL(file);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_BASE_URL = "http://127.0.0.1:8000";
+            window.allStudentsData = [];
+            let dashboardChart = null;
+
+            function getAuthHeaders() {
+                const token = localStorage.getItem('youth_canvas_token');
+                return { "Authorization": `Bearer ${token || ''}`, "Content-Type": "application/json" };
+            }
+
+            function handleAuthError(res) {
+                if (res.status === 401 || res.status === 403) {
+                    alert("인증이 만료되었거나 권한이 없습니다.");
+                    localStorage.removeItem('youth_canvas_token'); window.location.href = "/"; throw new Error("Unauthorized");
+                }
+                return res.json();
+            }
+
+            document.getElementById('btn-logout').addEventListener('click', () => {
+                localStorage.removeItem('youth_canvas_token'); window.location.href = "/";
+            });
+
+            const tabs = document.querySelectorAll('.tab-link'), contents = document.querySelectorAll('.tab-content'), titleEl = document.getElementById('current-tab-title');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('tab-active')); tab.classList.add('tab-active');
+                    contents.forEach(c => c.classList.remove('active'));
+                    document.getElementById(tab.dataset.tab).classList.add('active');
+                    titleEl.setAttribute('data-tab-id', tab.dataset.tab);
+                    titleEl.innerText = getI18nText('tab_' + tab.dataset.tab).replace(/[^\w\s가-힣]/g, '').trim(); 
+                    if (window.innerWidth < 768) toggleSidebar();
+                });
+            });
+
+            window.renderDynamicChart = function(students) {
+                try {
+                    const progCounts = {};
+                    students.forEach(s => { if (s.role === 'student') { const prog = s.program || '기타'; progCounts[prog] = (progCounts[prog] || 0) + 1; } });
+                    const labels = Object.keys(progCounts), dataValues = Object.values(progCounts);
+                    if (dashboardChart) dashboardChart.destroy();
+                    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#3B82F6';
+                    const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim() || '#333';
+                    
+                    const ctx = document.getElementById('barChart').getContext('2d');
+                    dashboardChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: { labels: labels.length > 0 ? labels.map(getDynText) : [getI18nText('admin_table_no_data')], datasets: [{ label: '학생 수', data: dataValues.length > 0 ? dataValues : [0], backgroundColor: primaryColor, borderRadius: 8 }] },
+                        options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { stepSize: 1, color: textColor }, grid: { display: false } }, x: { ticks: { color: textColor, font: {family: 'NanumSquareNeo', weight: 'bold'} }, grid: { display: false } } }, plugins: { legend: { display: false } }, animation: { duration: 800 } }
+                    });
+
+                    // 💡 [해석 추가] barChart
+                    const interpEl = document.getElementById('interp-barChart');
+                    if (labels.length > 0) {
+                        let maxProg = labels[0], maxVal = dataValues[0];
+                        for(let i=1; i<labels.length; i++) { if(dataValues[i] > maxVal) { maxVal = dataValues[i]; maxProg = labels[i]; } }
+                        interpEl.innerHTML = formatI18n('interp_dist_pos', {prog: getDynText(maxProg), val: maxVal});
+                        interpEl.classList.remove('hidden');
+                    } else {
+                        interpEl.innerHTML = getI18nText('interp_dist_none');
+                        interpEl.classList.remove('hidden');
+                    }
+                } catch (e) { console.log(e); }
+            }
+
+            window.loadPendingTasks = function() {
+                const container = document.getElementById('pending-tasks-container');
+                const countBadge = document.getElementById('pending-count');
+                
+                fetch(`${API_BASE_URL}/api/admin/tasks/pending`, { headers: getAuthHeaders() })
+                .then(res => {
+                    if(!res.ok) throw new Error("API 연동 에러");
+                    return res.json();
+                })
+                .then(data => {
+                    if(!data || !Array.isArray(data)) {
+                        countBadge.innerText = "0";
+                        container.innerHTML = '<p class="text-[15px] text-[var(--text-muted)] font-bold text-center py-4"><span data-i18n="admin_no_pending">대기 중인 승인 요청이 없습니다.</span></p>';
+                        return;
+                    }
+                    
+                    countBadge.innerText = String(data.length);
+                    if(data.length === 0) {
+                        container.innerHTML = '<p class="text-[15px] text-[var(--text-muted)] font-bold text-center py-4"><span data-i18n="admin_no_pending">대기 중인 승인 요청이 없습니다.</span></p>';
+                        return;
+                    }
+                    container.innerHTML = '';
+                    data.forEach(task => {
+                        const studentName = task.student_name || '알수없음';
+                        const taskId = task.task_id || '';
+                        const taskText = task.text || '알 수 없는 미션';
+                        const taskDate = task.date || '';
+                        
+                        container.innerHTML += `
+                            <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition hover:border-blue-300 mb-2">
+                                <div>
+                                    <p class="text-[15px] font-extrabold text-blue-600 mb-1">🎓 ${studentName} <span class="text-gray-400 font-normal ml-2 text-[13px]">${taskDate}</span></p>
+                                    <p class="text-[17px] font-bold text-gray-700 break-all">☑️ ${taskText}</p>
+                                </div>
+                                <div class="flex gap-2 shrink-0">
+                                    <button onclick="approveTask('${studentName}', '${taskId}', 'reject')" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-[15px] rounded-lg transition">반려</button>
+                                    <button onclick="approveTask('${studentName}', '${taskId}', 'approve')" class="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white font-extrabold text-[15px] rounded-lg shadow-sm transition">✅ 승인</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                })
+                .catch(err => {
+                    countBadge.innerText = "0";
+                    container.innerHTML = '<p class="text-[15px] text-red-500 font-bold text-center py-4">서버 연동을 확인해주세요 (새로고침).</p>';
+                });
+            }
+
+            window.approveTask = function(studentName, taskId, action) {
+                fetch(`${API_BASE_URL}/api/admin/tasks/approve`, {
+                    method: 'POST', headers: getAuthHeaders(),
+                    body: JSON.stringify({ student_name: studentName, task_id: taskId, action: action })
+                }).then(() => {
+                    loadPendingTasks();
+                });
+            }
+
+            function loadDashboard() {
+                fetch(`${API_BASE_URL}/api/dashboard/summary`, { headers: getAuthHeaders() })
+                .then(handleAuthError).then(data => {
+                    document.getElementById('stat-students').innerText = `${data.total_students}명`;
+                    document.getElementById('stat-programs').innerText = `${data.active_programs}개`;
+                    document.getElementById('stat-progress').innerText = `${data.avg_progress}%`;
+                    document.getElementById('stat-billing').innerText = `${data.billing_rate}%`;
+                }).catch(e => console.log("대시보드 로딩 실패"));
+            }
+
+            function loadStudents() {
+                fetch(`${API_BASE_URL}/api/students`, { headers: getAuthHeaders() })
+                .then(handleAuthError).then(data => {
+                    window.allStudentsData = data; renderStudentsTable(data); window.renderDynamicChart(data); 
+                });
+            }
+
+            let adminPrograms = [];
+            function loadAdminPrograms() {
+                fetch(`${API_BASE_URL}/api/programs`)
+                .then(res => res.json())
+                .then(data => {
+                    adminPrograms = data;
+                    const selectEl = document.getElementById('edit-prog-select');
+                    const attSelectEl = document.getElementById('att-global-program');
+                    const filSelectEl = document.getElementById('filter-program');
+                    selectEl.innerHTML = '<option value="">수정할 프로그램을 선택하세요</option>';
+                    if(attSelectEl) attSelectEl.innerHTML = '<option value="">============= 프로그램을 선택하세요 =============</option>';
+                    if(filSelectEl) filSelectEl.innerHTML = '<option value=""><span data-i18n="admin_filter_prog">📁 전체 프로그램</span></option>';
+                    data.forEach(p => {
+                        selectEl.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+                        if(attSelectEl) attSelectEl.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+                        if(filSelectEl) filSelectEl.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+                    });
+                });
+            }
+            loadAdminPrograms(); 
+
+            let currentEditProgramData = null;
+            document.getElementById('edit-prog-select').addEventListener('change', (e) => {
+                const progName = e.target.value; const formArea = document.getElementById('edit-form-area');
+                if (!progName) { formArea.classList.add('hidden'); formArea.classList.remove('opacity-100'); formArea.classList.add('opacity-0'); return; }
+                const prog = adminPrograms.find(p => p.name === progName);
+                currentEditProgramData = prog;
+                if (prog) {
+                    document.getElementById('edit-prog-name').value = prog.name; document.getElementById('edit-prog-yt').value = prog.yt_link || '';
+                    document.getElementById('edit-prog-color').value = prog.calendar_color || '#10B981';
+                    document.getElementById('edit-prog-start').value = prog.start_date || ''; document.getElementById('edit-prog-end').value = prog.end_date || '';
+                    document.getElementById('edit-prog-max').value = prog.max_participants || 10; document.getElementById('edit-prog-desc').value = prog.desc || '';
+                    document.getElementById('edit-prog-workflow').value = prog.workflow || '';
+                    
+                    document.getElementById('edit-prog-img').value = '';
+                    document.getElementById('edit-prog-img-preview').classList.add('hidden');
+                    document.getElementById('edit-prog-img-preview').style.backgroundImage = 'none';
+                    document.getElementById('edit-prog-img-text').innerHTML = '클릭하여 새 이미지 업로드<br>(Drag & Drop 불가)';
+                    document.getElementById('edit-prog-img-delete').checked = false;
+
+                    if(prog.image_base64 && prog.image_base64.length > 0) {
+                        document.getElementById('edit-prog-img-status').classList.remove('hidden');
+                        document.getElementById('edit-prog-img-preview').style.backgroundImage = `url(${prog.image_base64})`;
+                        document.getElementById('edit-prog-img-preview').classList.remove('hidden');
+                    } else {
+                        document.getElementById('edit-prog-img-status').classList.add('hidden');
+                    }
+                    
+                    formArea.classList.remove('hidden'); setTimeout(() => { formArea.classList.remove('opacity-0'); formArea.classList.add('opacity-100'); }, 50);
+                }
+            });
+
+            document.getElementById('btn-update-prog').addEventListener('click', () => {
+                const progName = document.getElementById('edit-prog-name').value;
+                if (!progName) return;
+                const imgInput = document.getElementById('edit-prog-img');
+                const deleteImg = document.getElementById('edit-prog-img-delete').checked;
+                const file = (imgInput && imgInput.files && imgInput.files.length > 0) ? imgInput.files[0] : null;
+
+                const processUpdate = (base64Img) => {
+                    let finalImageSrc = base64Img;
+                    if(deleteImg) finalImageSrc = "";
+                    else if(!file && currentEditProgramData && currentEditProgramData.image_base64) finalImageSrc = currentEditProgramData.image_base64; 
+
+                    const payload = { 
+                        name: progName, 
+                        desc: document.getElementById('edit-prog-desc').value, 
+                        workflow: document.getElementById('edit-prog-workflow').value, 
+                        yt_link: document.getElementById('edit-prog-yt').value, 
+                        start_date: document.getElementById('edit-prog-start').value, 
+                        end_date: document.getElementById('edit-prog-end').value, 
+                        max_participants: parseInt(document.getElementById('edit-prog-max').value) || 10,
+                        image_base64: finalImageSrc,
+                        calendar_color: document.getElementById('edit-prog-color').value
+                    };
+                    fetch(`${API_BASE_URL}/api/programs/update/${encodeURIComponent(progName)}`, { method: "PUT", headers: getAuthHeaders(), body: JSON.stringify(payload) })
+                    .then(handleAuthError).then(() => { alert("✅ 정보를 갱신했습니다!"); loadAdminPrograms(); document.getElementById('edit-form-area').classList.add('hidden'); loadDashboard(); }).catch(() => alert("❌ 수정 실패"));
+                };
+
+                if(file && !deleteImg) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) { processUpdate(e.target.result); };
+                    reader.readAsDataURL(file);
+                } else processUpdate("");
+            });
+
+            document.getElementById('btn-delete-prog').addEventListener('click', () => {
+                const progName = document.getElementById('edit-prog-name').value;
+                if (!progName) return;
+                if(!confirm(`정말로 '${progName}' 프로그램을 삭제하시겠습니까?`)) return;
+                fetch(`${API_BASE_URL}/api/programs/delete/${encodeURIComponent(progName)}`, { method: "DELETE", headers: getAuthHeaders() })
+                .then(handleAuthError).then(() => { alert("🗑️ 삭제되었습니다."); loadAdminPrograms(); loadDashboard(); document.getElementById('edit-prog-select').value = ''; document.getElementById('edit-form-area').classList.add('hidden'); }).catch(() => alert("❌ 삭제 실패"));
+            });
+
+            function loadBilling() {
+                fetch(`${API_BASE_URL}/api/billing`, { headers: getAuthHeaders() })
+                .then(handleAuthError).then(data => {
+                    const tbody = document.getElementById('billing-list-body');
+                    if(data.length > 0) { 
+                        tbody.innerHTML = ''; 
+                        data.forEach(b => {
+                            tbody.innerHTML += `<tr>
+                                <td>${b.date}</td>
+                                <td>${b.student_name}</td>
+                                <td>${b.program_name}</td>
+                                <td class="font-bold">${b.amount.toLocaleString()}원</td>
+                                <td>${b.method}</td>
+                                <td>${b.note}</td>
+                                <td class="flex gap-1 flex-wrap">
+                                    <button onclick="editBilling('${b.id}','${b.student_name}','${b.program_name}',${b.amount},'${b.method}','${(b.note||'').replace(/'/g,"\\'")}')"
+                                        class="text-[12px] font-bold bg-blue-50 text-blue-600 border border-blue-200 px-2 py-1 rounded-lg hover:bg-blue-100 transition">✏️</button>
+                                    <button onclick="deleteBilling('${b.id}')"
+                                        class="text-[12px] font-bold bg-red-50 text-red-500 border border-red-200 px-2 py-1 rounded-lg hover:bg-red-100 transition">🗑️</button>
+                                </td>
+                            </tr>`;
+                        });
+                    } 
+                    else tbody.innerHTML = `<tr><td colspan="7" class="text-center text-[var(--text-muted)] py-8">결제 내역 없음</td></tr>`;
+                });
+            }
+            
+            loadDashboard(); loadStudents(); loadBilling(); loadPendingTasks();
+
+            function applyFilters() {
+                const nameTerm = document.getElementById('filter-name').value.toLowerCase(), progTerm = document.getElementById('filter-program').value, roleTerm = document.getElementById('filter-role').value;
+                const filteredData = window.allStudentsData.filter(s => { return ((s.name || "").toLowerCase().includes(nameTerm)) && (progTerm === "" || s.program === progTerm) && (roleTerm === "" || s.role === roleTerm); });
+                window.renderStudentsTable(filteredData);
+            }
+            document.getElementById('filter-name').addEventListener('input', applyFilters); document.getElementById('filter-program').addEventListener('change', applyFilters); document.getElementById('filter-role').addEventListener('change', applyFilters);
+
+            window.renderStudentsTable = function(data) {
+                const tbody = document.getElementById('student-list-body'); document.getElementById('student-count').innerText = data.length; tbody.innerHTML = '';
+                if(data.length === 0) { tbody.innerHTML = `<tr><td colspan="3" class="text-center text-[var(--text-muted)] py-8 font-bold">${getI18nText('admin_table_no_data')}</td></tr>`; return; }
+                data.forEach(s => { 
+                    const roleTxt = s.role === 'student' ? getI18nText('admin_role_student') : getI18nText('admin_role_parent');
+                    tbody.innerHTML += `<tr><td class="font-extrabold text-[var(--primary)]">${s.name || '-'}</td><td>${getDynText(s.program) || '-'}</td><td class="font-bold">${roleTxt}</td></tr>`; 
+                });
+            }
+
+            function exportTableToCSV(tableId, filename) {
+                const table = document.getElementById(tableId); let csv = []; const rows = table.querySelectorAll("tr");
+                for (let i = 0; i < rows.length; i++) { let row = [], cols = rows[i].querySelectorAll("td, th"); for (let j = 0; j < cols.length; j++) { let data = cols[j].innerText.replace(/"/g, '""'); row.push('"' + data + '"'); } csv.push(row.join(",")); }
+                const csvContent = csv.join("\n");
+                const path = localStorage.getItem('yc_download_path');
+                if (path && path.trim() !== "") {
+                    fetch(`${API_BASE_URL}/api/admin/save_local_file`, {
+                        method: "POST", headers: getAuthHeaders(),
+                        body: JSON.stringify({ directory: path, filename: filename, content: csvContent })
+                    }).then(res => { if(!res.ok) throw new Error(); return res.json(); }).then(data => alert((window.getI18nText ? getI18nText('download_success') : '저장 완료') + "\n" + data.filepath)).catch(() => alert((window.getI18nText ? getI18nText('download_fail') : '저장 실패')));
+                } else {
+                    let csvFile = new Blob(["\uFEFF" + csvContent], {type: "text/csv;charset=utf-8;"});
+                    let downloadLink = document.createElement("a"); downloadLink.download = filename; downloadLink.href = window.URL.createObjectURL(csvFile);
+                    downloadLink.style.display = "none"; document.body.appendChild(downloadLink); downloadLink.click(); document.body.removeChild(downloadLink);
+                }
+            }
+            document.getElementById('btn-export-students').addEventListener('click', () => { exportTableToCSV('table-students', '명단.csv'); });
+            document.getElementById('btn-export-billing').addEventListener('click', () => { exportTableToCSV('table-billing', '결제내역.csv'); });
+
+            document.getElementById('btn-save-bill').addEventListener('click', () => {
+                const payload = { student_name: document.getElementById('bill-student').value, program_name: document.getElementById('bill-program').value, amount: parseInt(document.getElementById('bill-amount').value || 0), method: document.getElementById('bill-method').value, note: document.getElementById('bill-note').value };
+                fetch(`${API_BASE_URL}/api/billing/add`, { method: "POST", headers: getAuthHeaders(), body: JSON.stringify(payload) })
+                .then(handleAuthError).then(() => { alert("저장 완료"); loadBilling(); }).catch(() => alert("전송 실패"));
+            });
+            
+            document.getElementById('btn-save-prog').addEventListener('click', () => {
+                const imgInput = document.getElementById('prog-img');
+                const file = (imgInput && imgInput.files && imgInput.files.length > 0) ? imgInput.files[0] : null;
+
+                const processSave = (base64Img) => {
+                    const payload = { 
+                        name: document.getElementById('prog-name').value, 
+                        desc: document.getElementById('prog-desc').value, 
+                        workflow: document.getElementById('prog-workflow').value, 
+                        yt_link: document.getElementById('prog-yt').value, 
+                        start_date: document.getElementById('prog-start').value, 
+                        end_date: document.getElementById('prog-end').value, 
+                        max_participants: parseInt(document.getElementById('prog-max').value) || 10,
+                        image_base64: base64Img,
+                        calendar_color: document.getElementById('prog-color').value
+                    };
+                    fetch(`${API_BASE_URL}/api/programs/add`, { method: "POST", headers: getAuthHeaders(), body: JSON.stringify(payload) })
+                    .then(handleAuthError).then(() => { 
+                        alert("🎉 신규 프로그램 개설이 완료되었습니다!"); 
+                        loadAdminPrograms(); loadDashboard(); 
+                        document.getElementById('prog-name').value = ''; 
+                        document.getElementById('prog-img-preview').classList.add('hidden');
+                        if(imgInput) imgInput.value = '';
+                    }).catch(() => alert("전송 실패"));
+                };
+
+                if(file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) { processSave(e.target.result); };
+                    reader.readAsDataURL(file);
+                } else processSave("");
+            });
+
+            document.getElementById('btn-save-parent').addEventListener('click', () => {
+                const nameVal = document.getElementById('parent-name').value.trim(), pinVal = document.getElementById('parent-pin').value.trim(), childVal = document.getElementById('parent-child').value.trim();
+                if(!nameVal || !pinVal || !childVal) return alert("⚠️ 모두 입력해주세요.");
+                fetch(`${API_BASE_URL}/api/parents/add`, { method: "POST", headers: getAuthHeaders(), body: JSON.stringify({ name: nameVal, pin: pinVal, child_name: childVal }) })
+                .then(async (res) => { if(!res.ok) throw new Error(); return res.json(); }).then(() => { alert(`✅ 계정 생성 완료!`); loadStudents(); }).catch(() => alert("❌ 전송 실패"));
+            });
+
+            window.switchAttTab = function(tabName) {
+                document.querySelectorAll('.att-sub-btn').forEach(b => { 
+                    b.classList.remove('active', 'bg-white', 'shadow-sm', 'text-[var(--primary)]'); 
+                    b.classList.add('bg-transparent', 'text-[var(--text-muted)]', 'hover:bg-gray-100/50'); 
+                });
+                const activeBtn = document.getElementById('subbtn-att-' + tabName);
+                if(activeBtn) {
+                    activeBtn.classList.add('active', 'bg-white', 'shadow-sm', 'text-[var(--primary)]');
+                    activeBtn.classList.remove('bg-transparent', 'text-[var(--text-muted)]', 'hover:bg-gray-100/50');
+                }
+                document.querySelectorAll('.att-sub-content').forEach(c => c.classList.add('hidden'));
+                const activeContent = document.getElementById('att-tab-' + tabName);
+                if(activeContent) activeContent.classList.remove('hidden');
+                
+                const progName = document.getElementById('att-global-program').value;
+                if(!progName) return;
+
+                if(tabName === 'daily') loadDailyAttendanceUI(progName);
+                else if(tabName === 'viz') loadAttendanceChart(progName);
+                else if(tabName === 'edit') loadEditAttendanceUI(progName);
+            };
+
+            let currentAttRecords = [];
+            let attChartInstance = null;
+            document.getElementById('att-date').valueAsDate = new Date();
+
+            document.getElementById('att-global-program').addEventListener('change', (e) => {
+                const progName = e.target.value;
+                if(!progName) return;
+                const activeTab = document.querySelector('.att-sub-btn.active').id.replace('subbtn-att-', '');
+                switchAttTab(activeTab);
+            });
+
+            function loadDailyAttendanceUI(progName) {
+                const tbody = document.getElementById('attendance-list-body');
+                const students = window.allStudentsData.filter(s => s.role === 'student' && s.program === progName);
+                tbody.innerHTML = '';
+                if(students.length === 0) { tbody.innerHTML = `<tr><td colspan="3" class="text-center text-[var(--text-muted)] py-8 font-bold">${getI18nText('admin_no_students')}</td></tr>`; return; }
+                
+                students.forEach(s => {
+                    tbody.innerHTML += `
+                        <tr class="att-row border-b border-gray-100 dark:border-gray-800" data-student="${s.name}">
+                            <td class="p-3">
+                                <div class="font-extrabold text-[var(--text-main)] text-[17px] mb-0.5">${s.name}</div>
+                                <div class="text-[13px] text-[var(--text-muted)] font-bold">수강생</div>
+                            </td>
+                            <td class="p-3">
+                                <select class="ui-input py-2 text-[15px] font-bold att-status-select appearance-none">
+                                    <option value="출석" selected>출석</option>
+                                    <option value="지각">지각</option>
+                                    <option value="결석">결석</option>
+                                    <option value="병결">병결</option>
+                                </select>
+                            </td>
+                            <td class="p-3"><input type="text" class="ui-input py-2 px-3 text-[15px] att-note outline-none bg-gray-50 focus:bg-white" placeholder="사유 입력"></td>
+                        </tr>
+                    `;
+                });
+            }
+
+            function loadAttendanceChart(progName) {
+                fetch(`${API_BASE_URL}/api/attendance/program/${encodeURIComponent(progName)}`, { headers: getAuthHeaders() })
+                .then(res => res.json())
+                .then(data => {
+                    currentAttRecords = data;
+                    const students = window.allStudentsData.filter(s => s.role === 'student' && s.program === progName).map(s => s.name);
+                    
+                    if(data.length === 0 || students.length === 0) {
+                        document.getElementById('attVizEmpty').classList.remove('hidden');
+                        document.getElementById('attVizChart').style.display = 'none';
+                        return;
+                    }
+                    document.getElementById('attVizEmpty').classList.add('hidden');
+                    document.getElementById('attVizChart').style.display = 'block';
+
+                    const stats = {};
+                    students.forEach(s => stats[s] = { "출석": 0, "지각": 0, "결석": 0 });
+                    
+                    data.forEach(day => {
+                        (day.records || []).forEach(r => {
+                            if(stats[r.student_name] && r.status in stats[r.student_name]) {
+                                stats[r.student_name][r.status]++;
+                            }
+                        });
+                    });
+
+                    const labels = students;
+                    const dsPresent = labels.map(s => stats[s]["출석"]);
+                    const dsLate = labels.map(s => stats[s]["지각"]);
+                    const dsAbsent = labels.map(s => stats[s]["결석"]);
+
+                    const ctx = document.getElementById('attVizChart').getContext('2d');
+                    if(attChartInstance) attChartInstance.destroy();
+                    
+                    const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim() || '#334155';
+                    
+                    attChartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels.map(l => l + "(수강생)"),
+                            datasets: [
+                                { label: getDynText('출석'), data: dsPresent, backgroundColor: '#10B981', stack: 'Stack 0' },
+                                { label: getDynText('지각'), data: dsLate, backgroundColor: '#F59E0B', stack: 'Stack 0' },
+                                { label: getDynText('결석'), data: dsAbsent, backgroundColor: '#EF4444', stack: 'Stack 0' }
+                            ]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false, color: textColor,
+                            scales: { x: { stacked: true, grid: {display: false}, ticks: {color: textColor, font: {family: 'NanumSquareNeo', weight:'bold'}} }, y: { stacked: true, beginAtZero: true, grid: {color: 'rgba(0,0,0,0.05)'}, ticks: {color: textColor, stepSize: 1} } },
+                            plugins: { legend: { position: 'right', labels: {color: textColor, font: {family: 'NanumSquareNeo', weight:'bold'}} } }
+                        }
+                    });
+
+                    const interpAtt = document.getElementById('interp-attViz');
+                    if (labels.length > 0) {
+                        let totalPresent = dsPresent.reduce((a,b)=>a+b,0), totalAbs = dsAbsent.reduce((a,b)=>a+b,0), totalLate = dsLate.reduce((a,b)=>a+b,0);
+                        let totalPts = totalPresent + totalAbs + totalLate;
+                        if(totalPts === 0) {
+                            interpAtt.innerHTML = getI18nText('interp_att_none1');
+                        } else {
+                            if (totalPresent / totalPts >= 0.8) {
+                                interpAtt.innerHTML = getI18nText('interp_att_pos');
+                            } else {
+                                interpAtt.innerHTML = getI18nText('interp_att_warn');
+                            }
+                        }
+                        interpAtt.classList.remove('hidden');
+                    } else {
+                        interpAtt.innerHTML = getI18nText('interp_att_none2');
+                        interpAtt.classList.remove('hidden');
+                    }
+                })
+                .catch(err => console.log(err));
+            }
+
+            function loadEditAttendanceUI(progName) {
+                fetch(`${API_BASE_URL}/api/attendance/program/${encodeURIComponent(progName)}`, { headers: getAuthHeaders() })
+                .then(res => res.json())
+                .then(data => {
+                    currentAttRecords = data;
+                    const studentSelect = document.getElementById('edit-att-student');
+                    const students = window.allStudentsData.filter(s => s.role === 'student' && s.program === progName);
+                    studentSelect.innerHTML = '<option value="">선택하세요</option>';
+                    students.forEach(s => studentSelect.innerHTML += `<option value="${s.name}">${s.name}</option>`);
+                });
+            }
+
+            document.getElementById('edit-att-student').addEventListener('change', (e) => {
+                const sName = e.target.value;
+                const dateSelect = document.getElementById('edit-att-date');
+                if(!sName) { dateSelect.innerHTML = '<option value="">학생을 먼저 선택하세요</option>'; return; }
+                
+                const availableDates = [];
+                currentAttRecords.forEach(day => {
+                    const hasRecord = (day.records || []).some(r => r.student_name === sName);
+                    if(hasRecord) availableDates.push(day.date);
+                });
+                
+                if (availableDates.length === 0) {
+                    dateSelect.innerHTML = '<option value="">수정할 출결 기록이 없습니다</option>';
+                    document.getElementById('edit-att-status').value = '출석';
+                    document.getElementById('edit-att-note').value = '';
+                } else {
+                    dateSelect.innerHTML = '<option value="">수정할 날짜 선택</option>';
+                    availableDates.forEach(d => dateSelect.innerHTML += `<option value="${d}">${d}</option>`);
+                }
+            });
+
+            document.getElementById('edit-att-date').addEventListener('change', (e) => {
+                const date = e.target.value;
+                const sName = document.getElementById('edit-att-student').value;
+                if(!date || !sName) return;
+                
+                const dayRecord = currentAttRecords.find(d => d.date === date);
+                if(dayRecord) {
+                    const studentRecord = (dayRecord.records || []).find(r => r.student_name === sName);
+                    if(studentRecord) {
+                        document.getElementById('edit-att-status').value = studentRecord.status;
+                        document.getElementById('edit-att-note').value = studentRecord.note || '';
+                    }
+                }
+            });
+
+            document.getElementById('btn-save-attendance').addEventListener('click', () => {
+                const program = document.getElementById('att-global-program').value;
+                const dateVal = document.getElementById('att-date').value;
+                if(!program || !dateVal) return alert("날짜와 프로그램을 선택해주세요.");
+                
+                const attendanceData = [];
+                document.querySelectorAll('.att-row').forEach(row => { 
+                    attendanceData.push({ 
+                        student_name: row.dataset.student, 
+                        status: row.querySelector('.att-status-select').value, 
+                        note: row.querySelector('.att-note').value 
+                    }); 
+                });
+                
+                fetch(`${API_BASE_URL}/api/attendance/add`, { method: "POST", headers: getAuthHeaders(), body: JSON.stringify({ date: dateVal, program: program, records: attendanceData }) })
+                .then(handleAuthError).then(() => { alert("✅ 출석 저장 완료"); loadAttendanceChart(program); }).catch(() => alert("저장 실패"));
+            });
+
+            document.getElementById('btn-update-att').addEventListener('click', () => {
+                const program = document.getElementById('att-global-program').value;
+                const student = document.getElementById('edit-att-student').value;
+                const date = document.getElementById('edit-att-date').value;
+                const status = document.getElementById('edit-att-status').value;
+                const note = document.getElementById('edit-att-note').value;
+                
+                if(!program || !student || !date) return alert("수정할 대상을 모두 선택해주세요.");
+                
+                fetch(`${API_BASE_URL}/api/attendance/update`, { method: "PUT", headers: getAuthHeaders(), body: JSON.stringify({ date: date, program: program, student_name: student, status: status, note: note }) })
+                .then(handleAuthError).then(() => { alert("💾 기록 수정 완료"); loadEditAttendanceUI(program); }).catch(() => alert("통신 에러"));
+            });
+
+            document.getElementById('btn-delete-att').addEventListener('click', () => {
+                const program = document.getElementById('att-global-program').value;
+                const student = document.getElementById('edit-att-student').value;
+                const date = document.getElementById('edit-att-date').value;
+                
+                if(!program || !student || !date) return alert("삭제할 대상을 모두 선택해주세요.");
+                if(!confirm(`정말 ${date} 일자 ${student} 학생의 기록을 삭제합니까?`)) return;
+                
+                fetch(`${API_BASE_URL}/api/attendance/delete`, { method: "DELETE", headers: getAuthHeaders(), body: JSON.stringify({ date: date, program: program, student_name: student }) })
+                .then(handleAuthError).then(() => { alert("🗑️ 삭제 완료"); loadEditAttendanceUI(program); document.getElementById('edit-att-date').innerHTML='<option>학생을 먼저 선택하세요</option>'; }).catch(() => alert("통신 에러"));
+            });
+
+            let selectedEvalStudent = "";
+            document.getElementById('eval-student-search').addEventListener('input', (e) => {
+                const searchName = e.target.value.trim(), student = window.allStudentsData.find(s => s.role === 'student' && s.name === searchName), displayEl = document.getElementById('eval-selected-student');
+                if(student) { selectedEvalStudent = student.name; displayEl.innerText = `${student.name} (${student.program || '미지정'})`; displayEl.classList.add('text-[var(--primary)]', 'font-bold'); } 
+                else { selectedEvalStudent = ""; displayEl.innerText = "검색 후 선택해주세요"; displayEl.classList.remove('text-[var(--primary)]', 'font-bold'); }
+            });
+
+            document.getElementById('btn-save-evaluation').addEventListener('click', () => {
+                if(!selectedEvalStudent) return alert("학생 선택 필수");
+                const payload = { student_name: selectedEvalStudent, scores: { task: parseInt(document.getElementById('eval-score-task').value), prof: parseInt(document.getElementById('eval-score-prof').value), att: parseInt(document.getElementById('eval-score-att').value), comm: parseInt(document.getElementById('eval-score-comm').value) }, comment: document.getElementById('eval-comment').value };
+                fetch(`${API_BASE_URL}/api/evaluation/add`, { method: "POST", headers: getAuthHeaders(), body: JSON.stringify(payload) })
+                .then(handleAuthError).then(() => { alert(`🚀 피드백 전송 완료!`); document.getElementById('eval-comment').value = ''; }).catch(() => alert("전송 실패"));
+            });
+
+            // 💡 [추가] 고급 차트 (Plotly) 렌더링
+            window.loadAdvCharts = function() {
+                const colors = ['#9EBCEE', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+                
+                // 1. 도넛 차트 (전체 출결)
+                Plotly.newPlot('plotly-donut', [{
+                    values: [75, 12, 8, 5],
+                    labels: ['출석', '지각', '결석', '병결'],
+                    type: 'pie', hole: .6,
+                    marker: { colors: ['#10B981', '#F59E0B', '#EF4444', '#A78BFA'] }
+                }], { margin: {t:30, b:30, l:30, r:30}, paper_bgcolor: 'rgba(0,0,0,0)', font: {family: 'NanumSquareNeo', size: 10, color: '#333'} }, { responsive: true });
+
+                // 2. 라인 차트 (성취도 추이)
+                Plotly.newPlot('plotly-line', [{
+                    x: ['1주', '2주', '3주', '4주', '5주'], y: [65, 72, 85, 82, 90],
+                    type: 'scatter', mode: 'lines+markers', line: { color: '#9EBCEE', width: 4 },
+                    marker: { size: 10, color: '#9EBCEE' }, fill: 'tozeroy'
+                }], { margin: {t:30, b:30, l:30, r:30}, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', xaxis: {gridcolor: 'rgba(0,0,0,0.05)'}, yaxis: {gridcolor: 'rgba(0,0,0,0.05)'} }, { responsive: true });
+                
+                // 3. 히트맵 (출결 밀도)
+                Plotly.newPlot('plotly-heatmap', [{
+                    z: [[1, 20, 30], [20, 1, 60], [30, 60, 1]],
+                    x: ['월', '화', '수'], y: ['오전', '오후', '저녁'],
+                    type: 'heatmap', colorscale: 'Viridis'
+                }], { margin: {t:30, b:30, l:30, r:30}, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { responsive: true });
+
+                // 4. 산점도 (피드백 효과)
+                Plotly.newPlot('plotly-scatter', [{
+                    x: [1, 2, 3, 4, 5], y: [10, 11, 12, 13, 14], mode: 'markers', type: 'scatter',
+                    marker: { size: 12, color: '#10B981' }
+                }], { margin: {t:30, b:30, l:30, r:30}, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { responsive: true });
+
+                // 5. 스택 막대 (출결 상세)
+                Plotly.newPlot('plotly-stacked', [{
+                    x: ['A반', 'B반', 'C반'], y: [20, 14, 23], name: '출석', type: 'bar', marker: {color:'#10B981'}
+                }, {
+                    x: ['A반', 'B반', 'C반'], y: [12, 18, 29], name: '지각', type: 'bar', marker: {color:'#F59E0B'}
+                }], { barmode: 'stack', margin: {t:30, b:30, l:30, r:30}, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { responsive: true });
+            };
+
+            document.querySelectorAll('.adv-chart-chk').forEach(chk => {
+                chk.addEventListener('change', () => {
+                    document.getElementById(`plotly-${chk.value}`).classList.toggle('hidden', !chk.checked);
+                    loadAdvCharts();
+                });
+            });
+
+            // 💡 [추가] 1:1 채팅 관리
+            window.loadChatHistory = function() {
+                const target = document.getElementById('chat-target').value;
+                const channel = document.querySelector('input[name="chat-channel"]:checked').value;
+                if(!target) return alert("대상을 선택해주세요.");
+                
+                fetch(`${API_BASE_URL}/api/admin/chat/${encodeURIComponent(target)}?channel=${channel}`, { headers: getAuthHeaders() })
+                .then(res => res.json())
+                .then(messages => {
+                    const box = document.getElementById('admin-chat-box');
+                    box.innerHTML = messages.length ? "" : '<p class="text-[15px] text-[var(--text-muted)] text-center py-4" data-i18n="chat_no_history">대화 이력이 없습니다.</p>';
+                    messages.forEach(m => {
+                        const isMe = m.sender === 'admin';
+                        box.innerHTML += `
+                            <div class="flex ${isMe ? 'justify-end' : 'justify-start'}">
+                                <div class="${isMe ? 'bg-[var(--primary)] text-white' : 'bg-white text-[var(--text-main)]'} p-3 rounded-2xl text-[15px] max-w-[80%] shadow-sm border border-gray-100">
+                                    <div class="font-extrabold mb-1 ${isMe ? 'text-blue-50 text-[13px]' : 'text-[var(--primary)] text-[13px]'}">${m.sender}</div>
+                                    <div>${m.text}</div>
+                                    <div class="text-[12px] mt-1 opacity-60 text-right">${m.time}</div>
+                                </div>
+                            </div>`;
+                    });
+                    box.scrollTop = box.scrollHeight;
+                });
+            };
+
+            window.adminSendChat = function() {
+                const target = document.getElementById('chat-target').value;
+                const channel = document.querySelector('input[name="chat-channel"]:checked').value;
+                const input = document.getElementById('admin-chat-input');
+                if(!target || !input.value) return;
+                
+                fetch(`${API_BASE_URL}/api/admin/chat/send`, { method: "POST", headers: getAuthHeaders(), body: JSON.stringify({ target_name: target, message: input.value, channel: channel }) })
+                .then(handleAuthError).then(() => { input.value = ''; loadChatHistory(); });
+            };
+
+            // 💡 [추가] 재무 통계 로드
+            window.loadFinanceStats = function() {
+                fetch(`${API_BASE_URL}/api/admin/finance/stats`, { headers: getAuthHeaders() })
+                .then(res => res.json())
+                .then(data => {
+                    Plotly.newPlot('finance-pie', [{
+                        values: Object.values(data.category_totals),
+                        labels: Object.keys(data.category_totals).map(getDynText),
+                        type: 'pie', hole: .4,
+                        marker: { colors: ['#9EBCEE', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#34D399'] }
+                    }], { margin: {t:20, b:20, l:20, r:20}, paper_bgcolor: 'rgba(0,0,0,0)', font: {size: 10} }, { responsive: true });
+
+                    Plotly.newPlot('finance-line', [{
+                        x: Object.keys(data.date_totals), y: Object.values(data.date_totals),
+                        type: 'scatter', mode: 'lines+markers', line: { color: '#10B981' }
+                    }], { margin: {t:20, b:20, l:20, r:20}, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: {size: 10} }, { responsive: true });
+
+                    // 💡 [해석 추가] 재무 차트
+                    const pieInterp = document.getElementById('interp-finance-pie');
+                    const lineInterp = document.getElementById('interp-finance-line');
+                    const cats = Object.keys(data.category_totals);
+                    if (cats.length > 0) {
+                        let maxCat = cats[0], maxVal = data.category_totals[cats[0]];
+                        cats.forEach(c => { if(data.category_totals[c] > maxVal) { maxVal = data.category_totals[c]; maxCat = c; } });
+                        pieInterp.innerHTML = formatI18n('interp_pie_pos', {cat: getDynText(maxCat), val: maxVal.toLocaleString()});
+                        pieInterp.classList.remove('hidden');
+                        
+                        lineInterp.innerHTML = getI18nText('interp_line_pos');
+                        lineInterp.classList.remove('hidden');
+                    } else {
+                        pieInterp.innerHTML = lineInterp.innerHTML = getI18nText('interp_fin_none');
+                        pieInterp.classList.remove('hidden'); lineInterp.classList.remove('hidden');
+                    }
+                });
+            };
+
+            // 💡 [추가] AI 리포트
+            window.updateAIReport = function(force=false) {
+                const aiReport = document.getElementById('admin-ai-report');
+                if(!force && aiReport.dataset.completed === "true") return;
+                
+                aiReport.innerHTML = getI18nText('admin_ai_analyzing') || "분석 중...";
+                
+                fetch(`${API_BASE_URL}/api/admin/ml_report`, { headers: getAuthHeaders() })
+                .then(res => res.json())
+                .then(data => {
+                    window.latestMLData = data;
+                    if (data.status === "success") {
+                        aiReport.innerHTML = formatI18n('ml_success', data);
+                    } else if (data.status === "insufficient_data") {
+                        aiReport.innerHTML = getI18nText('ml_insufficient');
+                    } else {
+                        aiReport.innerHTML = getI18nText('ml_error');
+                    }
+                    aiReport.dataset.completed = "true";
+                })
+                .catch(() => {
+                    window.latestMLData = { status: "error" };
+                    aiReport.innerHTML = getI18nText('ml_error');
+                    aiReport.dataset.completed = "true";
+                });
+            };
+
+            // 💡 [추가] 계정 관리 및 다운로드 경로
+            window.saveDownloadPath = function() {
+                const path = document.getElementById('acct-download-path').value;
+                localStorage.setItem('yc_download_path', path);
+                const status = document.getElementById('path-save-status');
+                status.classList.remove('hidden');
+                setTimeout(() => status.classList.add('hidden'), 3000);
+            };
+
+            window.changeAdminPw = function() {
+                const cur = document.getElementById('acct-cur-pin').value;
+                const nex = document.getElementById('acct-new-pin').value;
+                if(!cur || !nex) return alert("비밀번호를 입력하세요.");
+                fetch(`${API_BASE_URL}/api/admin/change_password`, { method: "POST", headers: getAuthHeaders(), body: JSON.stringify({ current_pin: cur, new_pin: nex }) })
+                .then(res => res.json()).then(data => alert(data.message));
+            };
+
+            window.updateStudentInfo = function() {
+                const name = document.getElementById('acct-student-select').value;
+                const newName = document.getElementById('acct-new-name').value;
+                const newPin = document.getElementById('acct-new-student-pin').value;
+                if(!name) return alert("학생을 선택하세요.");
+                fetch(`${API_BASE_URL}/api/admin/student/update`, { method: "PUT", headers: getAuthHeaders(), body: JSON.stringify({ name: name, new_name: newName, new_pin: newPin }) })
+                .then(handleAuthError).then(() => { alert("✅ 정보 수정 성공"); location.reload(); });
+            };
+
+            window.deleteStudent = function() {
+                const name = document.getElementById('acct-student-select').value;
+                if(!name || !confirm(`${name} 학생을 정말 퇴소시키겠습니까? 모든 관련 데이터가 삭제됩니다.`)) return;
+                fetch(`${API_BASE_URL}/api/admin/student/delete/${encodeURIComponent(name)}`, { method: "DELETE", headers: getAuthHeaders() })
+                .then(handleAuthError).then(() => { alert("🗑️ 퇴소 처리 완료"); location.reload(); });
+            };
+
+            window.downloadBackup = function() {
+                const path = localStorage.getItem('yc_download_path');
+                fetch(`${API_BASE_URL}/api/admin/data/backup`, { headers: getAuthHeaders() })
+                .then(res => res.json())
+                .then(data => {
+                    const jsonString = JSON.stringify(data, null, 2);
+                    const filename = `YouthCanvas_Backup_${new Date().toISOString().split('T')[0]}.json`;
+                    if (path && path.trim() !== "") {
+                        fetch(`${API_BASE_URL}/api/admin/save_local_file`, {
+                            method: "POST", headers: getAuthHeaders(),
+                            body: JSON.stringify({ directory: path, filename: filename, content: jsonString })
+                        }).then(res => { if(!res.ok) throw new Error(); return res.json(); }).then(resData => alert((window.getI18nText ? getI18nText('download_success') : '저장 완료') + "\n" + resData.filepath)).catch(() => alert((window.getI18nText ? getI18nText('download_fail') : '저장 실패')));
+                    } else {
+                        const blob = new Blob([jsonString], { type: 'application/json' });
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url; a.download = filename;
+                        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    }
+                });
+            };
+
+            // 💡 Zoom 로직 추가
+            const zoomSlider = document.getElementById('zoom-slider');
+            if (zoomSlider) {
+                zoomSlider.value = localStorage.getItem('yc_zoom') || 100;
+                document.getElementById('zoom-val').innerText = zoomSlider.value + '%';
+                zoomSlider.addEventListener('input', (e) => {
+                    const zoomVal = e.target.value;
+                    document.getElementById('zoom-val').innerText = zoomVal + '%';
+                    document.documentElement.style.zoom = zoomVal + '%';
+                    localStorage.setItem('yc_zoom', zoomVal);
+                });
+            }
+
+            // 초기 로드
+            document.getElementById('acct-download-path').value = localStorage.getItem('yc_download_path') || "";
+            setTimeout(() => { loadAdvCharts(); loadFinanceStats(); updateAIReport(); }, 500);
+            
+            // 학생/학부모/선생님 드롭다운 채우기 (종합)
+            fetch(`${API_BASE_URL}/api/admin/students`, { headers: getAuthHeaders() }).then(res => res.json()).then(data => {
+                const chatT = document.getElementById('chat-target');
+                const acctS = document.getElementById('acct-student-select');
+                
+                const roleLabel = (r) => {
+                    if(r === 'student') return '🎓';
+                    if(r === 'parent') return '👨‍👩‍👧‍👦';
+                    if(r === 'teacher') return '👨‍🏫';
+                    if(r === 'admin_staff') return '🏢';
+                    return '👤';
+                };
+
+                data.forEach(u => {
+                    const label = `${roleLabel(u.role)} ${u.name}`;
+                    if(u.role === 'student' || u.role === 'parent') {
+                        chatT.innerHTML += `<option value="${u.name}">${label}</option>`;
+                    }
+                    acctS.innerHTML += `<option value="${u.name}">${label}</option>`;
+                });
+            });
+
+            // 결제 수정/삭제 함수
+            window.editBilling = function(id, studentName, progName, amount, method, note) {
+                const newAmount = prompt('금액 수정 (현재: ' + amount.toLocaleString() + '원):', amount);
+                if(newAmount === null) return;
+                const newNote = prompt('비고 수정:', note);
+                if(newNote === null) return;
+                fetch(`${API_BASE_URL}/api/billing/update/${id}`, {
+                    method: 'PUT', headers: getAuthHeaders(),
+                    body: JSON.stringify({ student_name: studentName, program_name: progName, amount: parseInt(newAmount), method: method, note: newNote })
+                }).then(handleAuthError).then(() => { alert('✅ 수정 완료'); loadBilling(); loadFinanceStats(); });
+            };
+
+            window.deleteBilling = function(id) {
+                if(!confirm('정말로 이 결제 내역을 삭제하시겠습니까?')) return;
+                fetch(`${API_BASE_URL}/api/billing/delete/${id}`, { method: 'DELETE', headers: getAuthHeaders() })
+                .then(handleAuthError).then(() => { alert('🗑️ 삭제 완료'); loadBilling(); loadFinanceStats(); });
+            };
+
+            // 직원 등록 함수
+            window.addStaff = function() {
+                const name = document.getElementById('staff-name').value;
+                const pin = document.getElementById('staff-pin').value;
+                const role = document.getElementById('staff-role').value;
+                if(!name || !pin) return alert('이름과 PIN을 입력하세요.');
+                fetch(`${API_BASE_URL}/api/admin/staff/add`, {
+                    method: 'POST', headers: getAuthHeaders(),
+                    body: JSON.stringify({ name: name, pin: pin, role: role })
+                }).then(handleAuthError).then(() => {
+                    alert('✅ 직원 등록 완료!');
+                    document.getElementById('staff-name').value = '';
+                    document.getElementById('staff-pin').value = '';
+                    location.reload();
+                }).catch(() => alert('❌ 등록 실패'));
+            };
+        });
+    </script>
+</body>
+</html>

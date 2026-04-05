@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="dash_title">Youth Canvas - 학생 스마트 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="i18n.js"></script>
+    <style>
+        :root {
+            /* Mint (Default) */
+            --bg-color: #EAEEEE; --card-bg: #EAEEEE; --text-primary: #333333; --text-secondary: #666666; --text-muted: #8899A6;
+            --accent: #00CFCC; --border-color: rgba(255,255,255,0.4); --surface-alt: #EAEEEE; --shadow-card: 8px 8px 16px #cdd0d0, -8px -8px 16px #ffffff; --chart-grid: rgba(0,0,0,0.05);
+        }
+        [data-theme="bench"] {
+            --bg-color: #d4cec4; --card-bg: #d4cec4; --text-primary: #333333; --text-secondary: #666666; --text-muted: #888888;
+            --accent: #2A9D8F; --border-color: rgba(255,255,255,0.4); --surface-alt: #d4cec4; --shadow-card: 8px 8px 16px #aba69e, -8px -8px 16px #fdf6ea; --chart-grid: rgba(0,0,0,0.05);
+        }
+        [data-theme="peach"] {
+            --bg-color: #FDF6F2; --card-bg: #FDF6F2; --text-primary: #5C4B41; --text-secondary: #8A786E; --text-muted: #a6948a;
+            --accent: #E89A86; --border-color: rgba(255,255,255,0.4); --surface-alt: #FDF6F2; --shadow-card: 9px 9px 18px #e8e2de, -9px -9px 18px #ffffff; --chart-grid: rgba(0,0,0,0.05);
+        }
+        [data-theme="blue"] {
+            --bg-color: #E8F0F8; --card-bg: #E8F0F8; --text-primary: #1E3A8A; --text-secondary: #64748B; --text-muted: #94A3B8;
+            --accent: #3B82F6; --border-color: rgba(255,255,255,0.4); --surface-alt: #E8F0F8; --shadow-card: 8px 8px 16px #cfd7df, -8px -8px 16px #ffffff; --chart-grid: rgba(0,0,0,0.05);
+        }
+        body { font-family: 'NanumSquareNeo', sans-serif; background-color: var(--bg-color); color: var(--text-primary); transition: all 0.3s ease; word-break: keep-all; overflow-wrap: break-word; }
+        .card { background-color: var(--card-bg); box-shadow: var(--shadow-card); border-radius: 1.5rem; border: 1px solid var(--border-color); transition: all 0.3s ease; }
+        .bg-surface { background-color: var(--surface-alt); border: 1px solid var(--border-color); transition: all 0.3s ease; }
+        .ui-shadow-in { box-shadow: inset 3px 3px 6px rgba(0,0,0,0.05), inset -3px -3px 6px #ffffff; }
+        .text-pri { color: var(--text-primary); } .text-sec { color: var(--text-secondary); } .text-mut { color: var(--text-muted); } .text-acc { color: var(--accent); }
+        .toggle-btn { transition: all 0.2s; border: 2px solid transparent; color: var(--text-secondary); }
+        .toggle-btn:hover { color: var(--text-primary); background-color: var(--surface-alt); }
+        .toggle-btn.active { border-color: var(--accent); background-color: rgba(59, 130, 246, 0.1); color: var(--accent); font-weight: 900; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; } .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 10px; opacity: 0.3; }
+        .break-keep { word-break: keep-all; overflow-wrap: break-word; }
+        
+        .checkbox-custom { accent-color: var(--accent); cursor: pointer; width: 1.25rem; height: 1.25rem; }
+        .task-done { text-decoration: line-through; opacity: 0.5; }
+        .task-pending { opacity: 0.8; }
+        .prog-tab { background-color: var(--surface-alt); color: var(--text-secondary); border: 1px solid var(--border-color); box-shadow: var(--shadow-card); transition: all 0.2s ease; cursor: pointer; }
+        .prog-tab.active { background-color: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .prog-tab:hover:not(.active) { filter: brightness(0.95); }
+        .lang-btn { transition: all 0.2s; }
+        .lang-btn.active { background-color: var(--accent); color: white; }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-6 lg:p-8 overflow-y-auto custom-scrollbar">
+
+    <header class="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center mb-8 card p-4 gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-xl shadow-lg font-black bg-[var(--card-bg)] border-2 border-[var(--accent)] text-acc">Y</div>
+            <h1 id="welcomeMessage" data-i18n="dash_welcome" class="text-xl font-extrabold tracking-tight text-pri">학생 대시보드</h1>
+        </div>
+        <div class="flex gap-4 items-center">
+            <nav class="hidden sm:flex gap-6 mr-6 border-r border-[var(--border-color)] pr-6">
+                <a href="index.html" data-i18n="nav_home" class="text-[17px] font-black text-pri hover:text-[var(--accent)] transition">탐색 홈</a>
+                <a href="calendar.html" data-i18n="nav_calendar" class="text-[17px] font-black text-pri hover:text-[var(--accent)] transition">전체 일정표</a>
+            </nav>
+            <div class="flex items-center gap-2 ui-shadow-in px-4 py-1.5 rounded-full w-max mr-2 border border-white/40">
+                <button onclick="setLanguage('ko')" data-lang="ko" class="lang-btn px-2.5 py-1 text-[13px] font-black rounded-full transition">KO</button>
+                <button onclick="setLanguage('en')" data-lang="en" class="lang-btn px-2.5 py-1 text-[13px] font-black rounded-full transition">EN</button>
+            </div>
+            <div class="flex items-center gap-3 p-1.5 px-4 rounded-full" style="background-color: var(--card-bg); box-shadow: inset 3px 3px 6px rgba(0,0,0,0.05), inset -3px -3px 6px #ffffff; border: 1px solid rgba(255,255,255,0.5);">
+                <button onclick="changeTheme('bench')" class="w-6 h-6 rounded-full border-2 border-transparent shadow-md hover:scale-110 transition" style="background: linear-gradient(135deg, #d2ccc4, #a39b8e);" title="Bench"></button>
+                <button onclick="changeTheme('mint')" class="w-6 h-6 rounded-full border-2 border-transparent shadow-md hover:scale-110 transition" style="background: linear-gradient(135deg, #2A9D8F, #1c7c70);" title="Mint (Default)"></button>
+                <button onclick="changeTheme('peach')" class="w-6 h-6 rounded-full border-2 border-transparent shadow-md hover:scale-110 transition" style="background: linear-gradient(135deg, #ffcba4, #e89a86);" title="Peach"></button>
+                <button onclick="changeTheme('blue')" class="w-6 h-6 rounded-full border-2 border-transparent shadow-md hover:scale-110 transition" style="background: linear-gradient(135deg, #a1c4fd, #c2e9fb);" title="Blue"></button>
+            </div>
+            <button id="btn-logout" data-i18n="dash_logout" class="text-[17px] font-extrabold text-sec hover:text-red-500 transition pl-4 border-l border-[var(--border-color)]">로그아웃</button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 pb-10">
+        
+        <section class="lg:col-span-4 space-y-6">
+            <div class="card p-6 border-t-4 flex flex-col items-center text-center" style="border-top-color: var(--accent);">
+                <p data-i18n="dash_my_programs" class="text-[var(--text-secondary)] text-[15px] font-bold mb-3 opacity-80">나의 소속 프로그램</p>
+                <div id="programSelectorContainer" class="flex flex-wrap justify-center gap-2 mb-4">
+                    <!-- 프로그램 버튼들이 여기 생성됩니다 -->
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="currentProgramBadge" data-i18n="dash_student_badge" class="bg-[var(--accent)] text-white text-[13px] px-2 py-0.5 rounded-full font-black">수강생</span>
+                </div>
+            </div>
+
+            <div class="card p-6 relative overflow-hidden bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-slate-800 dark:to-slate-900 border-none shadow-md">
+                <div class="flex justify-between items-end mb-4">
+                    <h3 data-i18n="dash_my_tier" class="text-[19px] font-extrabold text-indigo-900 dark:text-indigo-200 flex items-center gap-2">🏆 나의 활동 등급</h3>
+                </div>
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="text-5xl font-black text-indigo-600 dark:text-indigo-400 tracking-tighter transition-all duration-300" id="rewardPoints">0</div>
+                    <div class="text-xl font-bold text-indigo-400 mt-3">/ 100 P</div>
+                </div>
+                <div class="w-full bg-white dark:bg-slate-700 rounded-full h-3 mb-3 shadow-inner">
+                    <div id="rewardBar" class="h-3 rounded-full transition-all duration-500 bg-indigo-500" style="width: 0%;"></div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div id="rewardTier" data-i18n="dash_tier_calc" class="text-[17px] font-extrabold bg-white dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-lg shadow-sm border border-indigo-100 dark:border-slate-600 transition-all duration-300">등급 산정 중...</div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-indigo-100 dark:border-slate-700">
+                    <p data-i18n="dash_score_criteria" class="text-[14px] font-bold text-indigo-500 dark:text-indigo-300 mb-2">💡 점수 배분 기준 (자동 누적)</p>
+                    <ul id="rewardCriteria" class="text-[13px] text-indigo-400 dark:text-slate-400 space-y-1 list-disc pl-3 font-semibold break-keep">
+                        <li data-i18n="dash_wait_sync">서버 연동 대기중</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card p-6">
+                <h3 data-i18n="dash_att_title" class="text-[17px] font-extrabold mb-4 text-pri">📅 나의 누적 출결 (선생님 체크 기준)</h3>
+                <div class="flex justify-between gap-3">
+                    <div class="flex-1 bg-surface p-3 rounded-xl text-center border-b-2 border-green-500">
+                        <p data-i18n="dash_att_present" class="text-[13px] font-bold mb-1 text-sec">출석 🟢</p>
+                        <p id="attPresent" class="text-2xl font-black text-pri">0</p>
+                    </div>
+                    <div class="flex-1 bg-surface p-3 rounded-xl text-center border-b-2 border-yellow-500">
+                        <p data-i18n="dash_att_late" class="text-[13px] font-bold mb-1 text-sec">지각 🟡</p>
+                        <p id="attLate" class="text-2xl font-black text-pri">0</p>
+                    </div>
+                    <div class="flex-1 bg-surface p-3 rounded-xl text-center border-b-2 border-red-500">
+                        <p data-i18n="dash_att_absent" class="text-[13px] font-bold mb-1 text-sec">결석 🔴</p>
+                        <p id="attAbsent" class="text-2xl font-black text-pri">0</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="lg:col-span-5 flex flex-col gap-6">
+            <div class="card p-6 flex flex-col">
+                <div class="flex flex-col mb-6 gap-4 border-b border-[var(--border-color)] pb-4">
+                    <div>
+                        <h3 data-i18n="dash_analysis_title" class="text-lg font-extrabold mb-1 text-pri">맞춤형 성취도 분석</h3>
+                        <p data-i18n="dash_analysis_desc" class="text-[15px] font-bold text-sec break-keep">선생님의 평가가 누적되면 차트가 멋지게 그려집니다.</p>
+                    </div>
+                    <div class="flex gap-2 bg-surface p-1 rounded-xl w-max border border-[var(--border-color)] shadow-inner overflow-x-auto max-w-full">
+                        <button id="btn-radar" data-i18n="dash_chart_radar" class="toggle-btn active text-[15px] font-extrabold px-3 py-2 rounded-lg whitespace-nowrap" onclick="showChart('radar')">🕸️ 역량 밸런스</button>
+                        <button id="btn-bar" data-i18n="dash_chart_bar" class="toggle-btn text-[15px] font-extrabold px-3 py-2 rounded-lg whitespace-nowrap" onclick="showChart('bar')">📊 항목별 성취</button>
+                        <button id="btn-donut" data-i18n="dash_chart_donut" class="toggle-btn text-[15px] font-extrabold px-3 py-2 rounded-lg whitespace-nowrap" onclick="showChart('donut')">🍩 비중 분석</button>
+                    </div>
+                    <p id="chartSubtitle" data-i18n="dash_chart_desc_radar" class="text-[13px] font-bold text-mut mt-2 break-keep">🕸️ 4가지 역량의 균형을 한눈에 파악합니다. 고르게 넓을수록 올라운더!</p>
+                </div>
+
+                <div class="w-full h-56 flex justify-center items-center mb-6 relative">
+                    <canvas id="mainChart"></canvas>
+                    <div id="chartEmptyMsg" data-i18n="dash_chart_empty" class="hidden absolute inset-0 flex items-center justify-center text-[17px] font-bold text-mut text-center px-4 break-keep">📊 아직 평가 데이터가 없어요.<br>선생님이 평가를 등록하면 멋진 차트가 그려집니다!</div>
+                </div>
+
+                <div class="mt-auto">
+                    <h4 data-i18n="dash_ai_report" class="text-[15px] font-extrabold text-sec mb-2 flex items-center gap-1">🤖 AI 데이터 해석 레포트</h4>
+                    <div id="chartInsight" data-i18n="dash_loading" class="bg-surface p-5 rounded-2xl text-[17px] font-bold leading-relaxed border-l-4 border-[var(--accent)] break-keep text-pri" style="box-shadow: var(--shadow-in);">
+                        차트 데이터를 분석 중입니다...
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-6 flex flex-col flex-1">
+                <div class="flex justify-between items-end mb-4 border-b border-[var(--border-color)] pb-3">
+                    <div>
+                        <h3 data-i18n="dash_checklist_title" class="text-lg font-extrabold flex items-center gap-2 text-pri">✅ 세부 활동 체크리스트</h3>
+                        <p data-i18n="dash_checklist_desc" class="text-[15px] font-bold text-sec mt-1 break-keep">일정을 완수하고 체크하세요! 선생님의 승인 후 포인트가 오릅니다.</p>
+                    </div>
+                    <div class="text-right shrink-0 ml-2">
+                        <span class="text-2xl font-black text-acc" id="taskProgressText">0%</span>
+                        <p class="text-[13px] font-bold text-sec whitespace-nowrap" id="taskCountText">0/0 <span data-i18n="dash_approved">승인완료</span></p>
+                    </div>
+                </div>
+                
+                <div class="w-full bg-[var(--surface-alt)] rounded-full h-2 mb-4 border border-[var(--border-color)]">
+                    <div id="taskProgressBar" class="h-full rounded-full transition-all duration-500 bg-[var(--accent)]" style="width: 0%;"></div>
+                </div>
+
+                <div id="taskItems" class="space-y-2 overflow-y-auto custom-scrollbar flex-1 max-h-64 pr-2 text-[17px] text-pri font-bold">
+                    <p data-i18n="dash_loading" class="text-center text-sec py-4">일정을 불러오는 중입니다...</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="lg:col-span-3 flex flex-col gap-6">
+            <div class="card p-6">
+                <h3 data-i18n="dash_teacher_comment" class="text-[17px] font-extrabold mb-3 text-pri">👨‍🏫 선생님의 최근 코멘트</h3>
+                <p id="teacherComment" data-i18n="dash_loading" class="text-[17px] leading-relaxed font-bold bg-surface p-4 rounded-xl break-keep border border-[var(--border-color)] text-sec">
+                    데이터를 불러오는 중입니다...
+                </p>
+            </div>
+
+            <div class="card p-5">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 data-i18n="dash_today_schedule" class="text-[15px] font-black text-pri">📅 오늘의 전체 일정</h3>
+                    <button onclick="window.location.href='calendar.html'" data-i18n="dash_view_large" class="text-[12px] font-black text-acc hover:underline">크게 보기</button>
+                </div>
+                <div id="miniCalendar" class="space-y-3 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                    <p data-i18n="syncing" class="text-[13px] text-mut text-center py-4">동기화 중...</p>
+                </div>
+            </div>
+
+            <div class="card overflow-hidden flex flex-col flex-1 min-h-[350px]">
+                <div class="p-4 flex justify-between items-center shadow-md z-10 bg-[var(--accent)]">
+                    <h3 data-i18n="dash_chat_title" class="font-extrabold text-[17px] flex items-center gap-2 text-white">💬 담당 선생님 1:1 톡</h3>
+                    <div class="flex items-center gap-2">
+                        <span data-i18n="dash_online" class="text-[13px] font-bold text-white opacity-80">온라인</span>
+                        <span class="w-2.5 h-2.5 rounded-full bg-green-300 border border-white animate-pulse"></span>
+                    </div>
+                </div>
+                
+                <div id="chatBox" class="flex-1 p-4 overflow-y-auto custom-scrollbar space-y-4 bg-surface text-[17px] font-bold flex flex-col">
+                    <div data-i18n="dash_chat_welcome" class="text-center text-[13px] text-mut font-bold my-2 bg-[var(--card-bg)] rounded-full w-max mx-auto px-3 py-1 shadow-sm border border-[var(--border-color)]">오늘 선생님과 연결되었습니다.</div>
+                    <div class="flex justify-start">
+                        <div id="teacherWelcomeMsg" class="bg-[var(--card-bg)] text-pri px-4 py-2.5 rounded-2xl rounded-tl-none shadow-sm border border-[var(--border-color)] max-w-[85%] break-keep leading-relaxed">
+                            안녕하세요! 활동하면서 체크리스트와 관련된 질문이 있다면 언제든 편하게 남겨주세요. 😊
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-3 border-t border-[var(--border-color)] bg-[var(--card-bg)] flex gap-2">
+                    <input type="text" id="chatInput" data-i18n-ph="dash_chat_ph" placeholder="메시지 입력..." class="flex-1 bg-surface border border-[var(--border-color)] rounded-xl px-4 py-2.5 text-[17px] outline-none focus:border-[var(--accent)] font-bold text-pri transition">
+                    <button onclick="sendMsg()" data-i18n="dash_send" class="w-[70px] flex-shrink-0 rounded-xl font-extrabold shadow-sm transition hover:scale-105 text-white bg-[var(--accent)] whitespace-nowrap">전송</button>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+    <script>
+        function changeTheme(themeName) {
+            if(themeName === 'mint' || themeName === 'default') document.documentElement.removeAttribute('data-theme');
+            else document.documentElement.setAttribute('data-theme', themeName);
+            localStorage.setItem('youth_canvas_student_theme', themeName);
+            if(window.currentScores) {
+                if(window.currentChartLib === 'plotly') renderPlotly(window.currentScores, window.currentChartType);
+                else renderChart(window.currentChartType || 'radar', window.currentScores); 
+            }
+        }
+        const savedTheme = localStorage.getItem('youth_canvas_student_theme') || 'bench';
+        changeTheme(savedTheme);
+
+        let activeChart = null;
+        window.currentChartType = 'radar';
+        window.currentScores = [0, 0, 0, 0];
+        window.totalTasksCount = 0;
+        window.currentChartLib = 'plotly'; 
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_BASE_URL = "http://127.0.0.1:8000";
+            
+            function getAuthHeaders() {
+                const token = localStorage.getItem('youth_canvas_token');
+                if (!token) { window.location.href = "login_v3.html"; return null; }
+                return { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" };
+            }
+            window.getAuthHeaders = getAuthHeaders; 
+
+            document.getElementById('btn-logout').addEventListener('click', () => {
+                localStorage.removeItem('youth_canvas_token'); localStorage.removeItem('youth_canvas_user'); window.location.href = "login_v3.html";
+            });
+
+            const userStr = localStorage.getItem('youth_canvas_user');
+            if (!userStr) { window.location.href = "login_v3.html"; return; }
+            const user = JSON.parse(userStr);
+            const headers = getAuthHeaders(); if(!headers) return;
+
+            window.allProgramsData = {};
+            window.currentActiveProgram = "";
+
+            function loadDashboardData() {
+                fetch(`${API_BASE_URL}/api/user/${encodeURIComponent(user.name)}`, { headers: headers })
+                .then(res => { if(!res.ok) throw new Error("Auth Failed"); return res.json(); })
+                .then(data => {
+                    const lang = localStorage.getItem('yc_language') || 'ko';
+                    const roomSuffix = lang === 'ko' ? ' 님의 공간' : "'s Dashboard";
+                    document.getElementById('welcomeMessage').innerText = `${data.name}${roomSuffix}`;
+                    
+                    window.allProgramsData = data.programs_detail;
+                    const selector = document.getElementById('programSelectorContainer');
+                    selector.innerHTML = '';
+                    
+                    if(data.programs.length > 1) {
+                        const totalBtn = document.createElement('button');
+                        totalBtn.className = `prog-tab px-3 py-2 rounded-xl text-[15px] font-black transition ${window.currentActiveProgram === 'TOTAL' ? 'active' : (!window.currentActiveProgram ? 'active' : '')}`;
+                        totalBtn.innerText = lang === 'ko' ? "🌐 종합 보기" : "🌐 View All";
+                        totalBtn.onclick = () => switchProgram('TOTAL');
+                        selector.appendChild(totalBtn);
+                    }
+
+                    data.programs.forEach((prog, idx) => {
+                        const btn = document.createElement('button');
+                        btn.className = `prog-tab px-3 py-2 rounded-xl text-[15px] font-black transition ${window.currentActiveProgram === prog ? 'active' : ''}`;
+                        btn.innerText = prog;
+                        btn.onclick = () => switchProgram(prog);
+                        selector.appendChild(btn);
+                    });
+
+                    if(!window.currentActiveProgram) {
+                        window.currentActiveProgram = data.programs.length > 1 ? 'TOTAL' : data.programs[0];
+                    }
+
+                    document.getElementById('attPresent').innerText = data.attendance['출석'] || 0;
+                    document.getElementById('attLate').innerText = data.attendance['지각'] || 0;
+                    document.getElementById('attAbsent').innerText = data.attendance['결석'] || 0;
+
+                    const r = data.reward;
+                    updatePointsUI(r.points);
+                    
+                    const criBox = document.getElementById('rewardCriteria'); criBox.innerHTML = '';
+                    r.criteria.forEach(item => { criBox.innerHTML += `<li>${item}</li>`; });
+
+                    document.getElementById('teacherComment').innerText = `"${data.evaluation.comment}"`;
+
+                    const scores = data.evaluation.scores;
+                    window.currentScores = [scores.task, scores.prof, scores.att, scores.comm];
+                    
+                    if(window.currentChartLib === 'plotly') renderPlotly(window.currentScores, window.currentChartType);
+                    else renderChart(window.currentChartType, window.currentScores);
+
+                    if(window.currentActiveProgram === 'TOTAL') {
+                        let totalWorkflow = "";
+                        Object.keys(window.allProgramsData).forEach(p => {
+                            totalWorkflow += `[${p}]\n` + window.allProgramsData[p].workflow + "\n\n";
+                        });
+                        renderChecklist(totalWorkflow, data.approved_tasks, data.pending_tasks);
+                    } else if(window.currentActiveProgram) {
+                        const progDetail = window.allProgramsData[window.currentActiveProgram];
+                        renderChecklist(progDetail.workflow, data.approved_tasks, data.pending_tasks);
+                    }
+
+                    if(lang === 'en' && document.getElementById('teacherWelcomeMsg')) {
+                         document.getElementById('teacherWelcomeMsg').innerText = "Hello! If you have any questions about the checklist while participating, feel free to leave them here. 😊";
+                    } else if(document.getElementById('teacherWelcomeMsg')) {
+                         document.getElementById('teacherWelcomeMsg').innerText = (window.getI18nText ? getI18nText('hello_msg') : '안녕하세요! 활동하면서 체크리스트와 관련된 질문이 있다면 언제든 편하게 남겨주세요. 😊');
+                    }
+                })
+                .catch(err => { console.log("Dashboard load error:", err); });
+            }
+
+            function switchProgram(progName) {
+                window.currentActiveProgram = progName;
+                loadDashboardData();
+            }
+
+            loadDashboardData();
+            loadMiniCalendar(); 
+            
+            setInterval(() => {
+                loadDashboardData();
+                loadMiniCalendar();
+            }, 30000);
+        });
+
+        async function loadMiniCalendar() {
+            const container = document.getElementById('miniCalendar');
+            try {
+                const res = await fetch("http://127.0.0.1:8000/api/programs");
+                const data = await res.json();
+                const events = [];
+                const now = new Date();
+                const todayStr = now.toISOString().split('T')[0];
+
+                data.forEach(p => {
+                    const regex = /(\d{4})-(\d{2})-(\d{2})\s*\((\d{2}):(\d{2})\)/g;
+                    let match;
+                    while ((match = regex.exec(p.workflow)) !== null) {
+                        const dateStr = `${match[1]}-${match[2]}-${match[3]}`;
+                        events.push({ date: dateStr, time: `${match[4]}:${match[5]}`, title: p.name, color: p.calendar_color || '#3B82F6' });
+                    }
+                });
+
+                events.sort((a,b) => a.date.localeCompare(b.date));
+                const upcoming = events.filter(e => e.date >= todayStr).slice(0, 5);
+
+                if (upcoming.length === 0) {
+                    container.innerHTML = `<p class="text-[13px] text-mut text-center py-4 italic">${getI18nText('cal_no_sched')}</p>`;
+                    return;
+                }
+
+                const monthUnit = getI18nText('cal_month_unit');
+                container.innerHTML = upcoming.map(e => `
+                    <div class="flex items-start gap-2.5 p-2 rounded-lg bg-[var(--surface-alt)] border-l-4" style="border-left-color: ${e.color}">
+                        <div class="flex flex-col items-center shrink-0 w-8">
+                            <span class="text-[11px] font-black text-mut">${e.date.split('-')[1]}${monthUnit}</span>
+                            <span class="text-[17px] font-black text-pri leading-none">${e.date.split('-')[2]}</span>
+                        </div>
+                        <div>
+                            <p class="text-[14px] font-black text-pri break-keep mb-0.5">${e.title}</p>
+                            <span class="text-[12px] font-bold text-sec">🕒 ${e.time}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch(e) { container.innerHTML = `<p class="text-[12px] text-red-500">${getI18nText('cal_fail')}</p>`; }
+        }
+
+        function updatePointsUI(totalPoints) {
+            document.getElementById('rewardPoints').innerText = totalPoints;
+            document.getElementById('rewardBar').style.width = `${totalPoints}%`;
+            
+            const lang = localStorage.getItem('yc_language') || 'ko';
+            let tier = lang === 'ko' ? "🌱 C 등급 (비기너)" : "🌱 Tier C (Beginner)";
+            if (totalPoints >= 85) tier = lang === 'ko' ? "🏆 S 등급 (마스터)" : "🏆 Tier S (Master)";
+            else if (totalPoints >= 70) tier = lang === 'ko' ? "🥇 A 등급 (챌린저)" : "🥇 Tier A (Challenger)";
+            else if (totalPoints >= 50) tier = lang === 'ko' ? "🥈 B 등급 (러너)" : "🥈 Tier B (Runner)";
+            document.getElementById('rewardTier').innerText = tier;
+        }
+
+        function renderChecklist(workflowText, approvedArray, pendingArray) {
+            const container = document.getElementById('taskItems');
+            container.innerHTML = '';
+            window.totalTasksCount = 0;
+            window._workflowLines = {}; 
+            
+            if(!workflowText) {
+                container.innerHTML = `<p class="text-center text-sec py-4 border border-dashed border-[var(--border-color)] rounded-xl">${getI18nText('dash_no_checklist')}</p>`;
+                updateTaskProgress(0);
+                return;
+            }
+
+            const lines = workflowText.split('\n');
+            let html = '';
+
+            lines.forEach((line) => {
+                const trimmed = line.trim();
+                if(trimmed === '') return;
+                
+                window.totalTasksCount++;
+                const taskId = stringToHash(trimmed); 
+                window._workflowLines[taskId] = trimmed; 
+                
+                const isApproved = approvedArray.includes(taskId);
+                const isPending = pendingArray.includes(taskId);
+                
+                let checkedAttr = (isApproved || isPending) ? 'checked' : '';
+                
+                let textClass = "font-extrabold";
+                let badgeHtml = "";
+                let labelClass = "flex items-start gap-3 rounded-xl border transition";
+                
+                if(trimmed.startsWith('-')) {
+                    labelClass = "flex items-start gap-3 p-2.5 rounded-lg transition ml-6 border border-transparent";
+                    if (isApproved) {
+                        textClass += " task-done"; 
+                    } else if (isPending) {
+                        labelClass += " bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-700";
+                        textClass += " task-pending";
+                        badgeHtml = `<span class="text-yellow-600 dark:text-yellow-400 text-[13px] font-black ml-2 bg-yellow-100 dark:bg-yellow-800/50 px-2 py-0.5 rounded-md whitespace-nowrap">${getI18nText('dash_pending')}</span>`;
+                    } else {
+                        labelClass += " hover:bg-[var(--surface-alt)] cursor-pointer";
+                    }
+                    
+                    html += `<label class="${labelClass}">
+                        <input type="checkbox" class="checkbox-custom mt-0.5 task-checkbox cursor-pointer" data-task-id="${taskId}" ${checkedAttr}>
+                        <span class="text-[15px] leading-relaxed ${textClass} break-keep flex items-center flex-wrap cursor-pointer">↳ ${escapeHtml(trimmed.substring(1).trim())} ${badgeHtml}</span>
+                    </label>`;
+                } 
+                else {
+                    labelClass += " p-3";
+                    if (isApproved) {
+                        labelClass += " bg-[var(--surface-alt)] shadow-sm border-[var(--border-color)]";
+                        textClass += " task-done"; 
+                    } else if (isPending) {
+                        labelClass += " bg-yellow-50 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-700";
+                        textClass += " task-pending";
+                        badgeHtml = `<span class="text-yellow-600 dark:text-yellow-400 text-[13px] font-black ml-2 bg-yellow-100 dark:bg-yellow-800/50 px-2 py-0.5 rounded-md whitespace-nowrap">${getI18nText('dash_pending')}</span>`;
+                    } else {
+                        labelClass += " bg-[var(--surface-alt)] shadow-sm border-[var(--border-color)] hover:brightness-95 cursor-pointer";
+                    }
+
+                    html += `<label class="${labelClass}">
+                        <input type="checkbox" class="checkbox-custom mt-0.5 task-checkbox cursor-pointer" data-task-id="${taskId}" ${checkedAttr}>
+                        <span class="text-[17px] leading-relaxed ${textClass} break-keep flex items-center flex-wrap gap-1 cursor-pointer">${escapeHtml(trimmed)} ${badgeHtml}</span>
+                    </label>`;
+                }
+            });
+
+            container.innerHTML = html;
+            updateTaskProgress(approvedArray.length);
+            
+            container.querySelectorAll('.task-checkbox').forEach(cb => {
+                cb.addEventListener('change', function() {
+                    handleTaskToggle(this);
+                });
+            });
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function handleTaskToggle(checkbox) {
+            const taskId = checkbox.dataset.taskId;
+            const taskText = window._workflowLines[taskId] || '';
+            checkbox.disabled = true; // 서버 통신 중 중복 클릭 방지
+            
+            fetch(`http://127.0.0.1:8000/api/user/tasks`, {
+                method: 'POST',
+                headers: window.getAuthHeaders(),
+                body: JSON.stringify({ task_id: taskId, task_text: taskText, completed: checkbox.checked })
+            }).then(() => {
+                if(window.loadDashboardData) window.loadDashboardData();
+            });
+        }
+
+        function updateTaskProgress(completed) {
+            const total = window.totalTasksCount;
+            const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+            document.getElementById('taskProgressText').innerText = `${pct}%`;
+            document.getElementById('taskCountText').innerText = `${completed}/${total} ${getI18nText('dash_approved')}`;
+            document.getElementById('taskProgressBar').style.width = `${pct}%`;
+        }
+
+        function stringToHash(string) {
+            let hash = 0; if (string.length == 0) return hash.toString();
+            for (let i = 0; i < string.length; i++) {
+                let char = string.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char; hash = hash & hash;
+            } return hash.toString();
+        }
+
+        function getChartDescriptions() {
+            return {
+                'radar': getI18nText('dash_chart_desc_radar'),
+                'bar': getI18nText('dash_chart_desc_bar'),
+                'donut': getI18nText('dash_chart_desc_donut')
+            };
+        }
+
+        window.showChart = function(type) {
+            window.currentChartType = type;
+            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${type}`).classList.add('active');
+            document.getElementById('chartSubtitle').innerText = getChartDescriptions()[type] || '';
+            
+            if(window.currentChartLib === 'plotly') renderPlotly(window.currentScores, type);
+            else renderChart(type, window.currentScores);
+            
+            generateAIInsight(window.currentScores, type);
+        }
+
+        function renderChart(type, dataValues) {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#3B82F6';
+            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim() || '#334155';
+            const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim() || 'rgba(0,0,0,0.1)';
+            const labels = [getI18nText('dash_score_exec'), getI18nText('dash_score_prof'), getI18nText('dash_score_integ'), getI18nText('dash_score_comm')];
+            const total = dataValues.reduce((a, b) => a + b, 0);
+            
+            const emptyMsg = document.getElementById('chartEmptyMsg');
+            const canvas = document.getElementById('mainChart');
+            if(activeChart != null) activeChart.destroy();
+            
+            if(total === 0) {
+                canvas.style.display = 'none';
+                emptyMsg.classList.remove('hidden');
+                generateAIInsight(dataValues, type);
+                return;
+            }
+            canvas.style.display = 'block';
+            emptyMsg.classList.add('hidden');
+            
+            const ctx = canvas.getContext('2d');
+            const chartColors = [accentColor, '#10B981', '#F59E0B', '#8B5CF6'];
+
+            let config = {
+                type: type === 'donut' ? 'doughnut' : type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: (localStorage.getItem('yc_language') || 'ko') === 'ko' ? '나의 성취도 점수' : 'My Achievement Score',
+                        data: dataValues,
+                        backgroundColor: type === 'bar' ? chartColors : (type === 'donut' ? chartColors : `${accentColor}40`),
+                        borderColor: type === 'donut' ? (isDark ? '#1e293b' : '#ffffff') : (type === 'bar' ? chartColors.map(c => c) : accentColor),
+                        borderWidth: 2, pointBackgroundColor: accentColor, pointRadius: 4,
+                        borderRadius: type === 'bar' ? 6 : 0
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, color: textColor,
+                    plugins: { legend: { display: type === 'donut', position: 'right', labels: { color: textColor, font: {family: 'NanumSquareNeo', weight: 'bold'}, padding: 12 } } },
+                    animation: { duration: 600 }
+                }
+            };
+
+            if (type === 'radar') config.options.scales = { r: { min: 0, max: 100, ticks: { display: false }, grid: {color: gridColor}, angleLines:{color:gridColor}, pointLabels: { color: textColor, font: {family: 'NanumSquareNeo', weight: 'bold', size: 11} } } };
+            else if (type === 'bar') config.options.scales = { y: { min: 0, max: 100, grid: {color: gridColor}, ticks: {color: textColor, font: {weight: 'bold'}} }, x: { grid: {display: false}, ticks: {color: textColor, font: {family: 'NanumSquareNeo', weight: 'bold', size: 11}} } };
+
+            activeChart = new Chart(ctx, config);
+        }
+
+        function generateAIInsight(data, type) {
+            const insightBox = document.getElementById('chartInsight');
+            const total = data.reduce((a, b) => a + b, 0);
+            const avg = total / 4;
+            const lang = localStorage.getItem('yc_language') || 'ko';
+            
+            if(total === 0) {
+                insightBox.innerHTML = lang === 'ko' ? "👀 아직 선생님의 평가 점수가 등록되지 않았습니다. 미션을 수행하고 출석 포인트를 쌓아보세요!" : "👀 Teacher's evaluation hasn't been registered yet. Complete missions and build points!";
+                insightBox.style.borderColor = "var(--text-muted)";
+                return;
+            }
+
+            const maxVal = Math.max(...data), minVal = Math.min(...data);
+            const maxIdx = data.indexOf(maxVal), minIdx = data.indexOf(minVal);
+            const labels = [getI18nText('dash_score_exec'), getI18nText('dash_score_prof'), getI18nText('dash_score_integ'), getI18nText('dash_score_comm')];
+            const gap = maxVal - minVal;
+            let html = "";
+            
+            if(type === 'radar') html += `<span class="text-indigo-500 font-black text-[15px]">${lang === 'ko' ? '📐 역량 밸런스 해석' : '📐 Competency Balance Analysis'}</span><br>`;
+            else if(type === 'bar') html += `<span class="text-indigo-500 font-black text-[15px]">${lang === 'ko' ? '📊 항목별 성취 해석' : '📊 Achievement Bar Analysis'}</span><br>`;
+            else html += `<span class="text-indigo-500 font-black text-[15px]">${lang === 'ko' ? '🍩 비중 분석 해석' : '🍩 Proportion Analysis'}</span><br>`;
+
+            html += `<span class="text-acc font-black text-[19px]">${lang === 'ko' ? '✨ 강점 분석:' : '✨ Strength:'}</span> <span class="text-pri">${lang === 'ko' ? `현재 <b>[${labels[maxIdx]}]</b> 영역이 ${maxVal}점으로 가장 뛰어납니다! ` : `Your <b>[${labels[maxIdx]}]</b> area is outstanding at ${maxVal}pts! `}`;
+            if(maxIdx === 0) html += lang === 'ko' ? "주어진 목표를 향해 끝까지 해내는 추진력이 탁월해요. 이 실행력은 어떤 분야에서든 가장 강력한 무기가 됩니다." : "Your drive to achieve goals is exceptional. This execution is a powerful weapon in any field.";
+            else if(maxIdx === 1) html += lang === 'ko' ? "배운 기술과 지식을 빠르게 흡수하고 높은 퀄리티로 결과물을 만들어내는 모습이 프로페셔널 그 자체입니다." : "You absorb knowledge quickly and produce high-quality results. Very professional.";
+            else if(maxIdx === 2) html += lang === 'ko' ? "빠지지 않고 꾸준히 참여하며, 맡은 역할을 책임감 있게 수행하는 태도가 빛나고 있어요. 신뢰를 주는 팀원이에요!" : "You participate consistently and perform roles responsibly. You are a trusted teammate!";
+            else html += lang === 'ko' ? "팀원들의 의견을 잘 듣고, 갈등 상황에서도 원만하게 조율하는 소통 능력이 훌륭합니다. 리더의 자질이 보여요!" : "You listen to team opinions and mediate conflicts well. You have leadership qualities!";
+            html += "</span>";
+
+            html += "<br><br>";
+            
+            html += `<span class="text-pink-500 font-black text-[19px]">${lang === 'ko' ? '🌱 성장 가이드:' : '🌱 Growth Guide:'}</span> <span class="text-pri">`;
+            if(gap <= 10) {
+                html += lang === 'ko' ? `모든 역량이 고르게 발달되어 있어요! 평균 ${Math.round(avg)}점으로, 올라운더형 인재의 면모를 보여주고 있습니다. ` : `All competencies are well-balanced! With an average of ${Math.round(avg)}, you show signs of an all-rounder. `;
+            } else {
+                html += (lang === 'ko' ? `<b>[${labels[minIdx]}]</b> 영역(${minVal}점)을 조금 더 신경 쓴다면 완벽한 밸런스를 갖출 수 있습니다. ` : `Focusing more on <b>[${labels[minIdx]}]</b> (${minVal}pts) will help you achieve perfect balance. `);
+                if(minIdx === 0) html += lang === 'ko' ? "다음 미션에서 스스로 마감일을 정하고 실천해 보세요. 작은 성공이 쌓이면 실행력이 폭발적으로 올라갑니다. " : "Try setting your own deadlines for the next mission. Small wins build massive execution.";
+                else if(minIdx === 1) html += lang === 'ko' ? "관심 있는 분야의 유튜브 영상이나 책 한 권을 깊이 파보세요. 전문성은 '깊이'에서 나옵니다. " : "Dive deep into a topic through books or videos. Professionalism comes from 'depth'.";
+                else if(minIdx === 2) html += lang === 'ko' ? "출석과 과제 제출을 빼먹지 않는 것만으로도 큰 변화가 시작됩니다. 습관이 곧 성실성이에요! " : "Just not missing attendance or assignments starts a big change. Habit is integrity!";
+                else html += lang === 'ko' ? "팀 활동에서 먼저 인사하고 의견을 물어보는 연습을 해보세요. 소통은 기술이 아니라 용기에서 시작됩니다! " : "Practice greeting first and asking for opinions in team activities. Communication starts with courage!";
+            }
+            
+            if(type === 'radar') html += lang === 'ko' ? "레이더 차트가 정사각형에 가까울수록 균형 잡힌 성장을 의미합니다. 찌그러진 부분을 넓혀서 다이아몬드형을 완성해 보세요!" : "A radar chart closer to a square means balanced growth. Expand the narrow parts to complete a diamond!";
+            else if(type === 'bar') html += lang === 'ko' ? "막대 높이가 모두 비슷해질수록 안정적인 성장세를 보여줍니다. 가장 낮은 막대를 다음 번엔 가장 높게 만들어볼까요?" : "When bar heights are similar, it shows stable growth. Try making the lowest bar the highest next time!";
+            else html += lang === 'ko' ? `전체 대비 [${labels[maxIdx]}]이(가) ${Math.round(data[maxIdx]/total*100)}%를 차지하고 있어요. 비율을 고르게 만들수록 다재다능한 인재로 성장합니다!` : `[${labels[maxIdx]}] account for ${Math.round(data[maxIdx]/total*100)}% of the total. Balanced proportions help you grow into a versatile talent!`;
+            html += "</span>";
+
+            insightBox.innerHTML = html;
+            insightBox.style.borderColor = "var(--accent)";
+        }
+
+        window.sendMsg = function() {
+            const input = document.getElementById('chatInput');
+            if(!input.value.trim()) return;
+            fetch(`http://127.0.0.1:8000/api/student/chat/send`, { method: "POST", headers: window.getAuthHeaders(), body: JSON.stringify({ message: input.value }) })
+            .then(res => res.json()).then(() => { input.value = ''; loadChatHistory(); });
+        }
+
+        window.loadChatHistory = function() {
+            fetch(`http://127.0.0.1:8000/api/student/chat`, { headers: window.getAuthHeaders() })
+            .then(res => res.json())
+            .then(messages => {
+                const box = document.getElementById('chatBox');
+                if(!messages.length && box.children.length > 2) return; 
+                if(!messages.length) return;
+                
+                const welcomeMsg = box.children[0];
+                const teacherIntro = box.children[1];
+                box.innerHTML = '';
+                box.appendChild(welcomeMsg);
+                box.appendChild(teacherIntro);
+
+                messages.forEach(m => {
+                    const isMe = m.sender !== 'admin';
+                    box.innerHTML += `
+                        <div class="flex ${isMe ? 'justify-end' : 'justify-start'}">
+                            <div class="${isMe ? 'bg-[var(--accent)] text-white' : 'bg-[var(--card-bg)] text-pri border border-[var(--border-color)]'} px-4 py-2.5 rounded-2xl ${isMe ? 'rounded-tr-none' : 'rounded-tl-none'} shadow-sm max-w-[85%] break-keep leading-relaxed">
+                                ${!isMe ? `<span class="text-[13px] text-acc font-black block mb-1">${getI18nText('dash_chat_teacher_ph')}</span>` : ''}
+                                <span>${m.text}</span>
+                                <div class="text-[11px] mt-1 ${isMe ? 'text-blue-50' : 'text-mut'} text-right">${m.time}</div>
+                            </div>
+                        </div>`;
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+
+        window.renderPlotly = function(values, type) {
+            const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+            const labels = [getI18nText('dash_score_exec'), getI18nText('dash_score_prof'), getI18nText('dash_score_integ'), getI18nText('dash_score_comm')];
+            const canvas = document.getElementById('mainChart');
+            if(!canvas) return; 
+            canvas.style.display = 'none';
+            let plotlyTarget = document.getElementById('plotly-target');
+            if(!plotlyTarget) {
+                plotlyTarget = document.createElement('div');
+                plotlyTarget.id = 'plotly-target';
+                plotlyTarget.className = "w-full h-56";
+                canvas.parentNode.insertBefore(plotlyTarget, document.getElementById('chartEmptyMsg'));
+            }
+            plotlyTarget.style.display = 'block';
+
+            if(type === 'donut') {
+                Plotly.newPlot(plotlyTarget, [{
+                    values: values, labels: labels, type: 'pie', hole: .4,
+                    marker: { colors: [accent, '#10B981', '#F59E0B', '#8B5CF6'] }
+                }], { margin: {t:0, b:0, l:0, r:0}, paper_bgcolor: 'rgba(0,0,0,0)', font: {size: 10} }, {displayModeBar: false});
+            } else if(type === 'bar') {
+                Plotly.newPlot(plotlyTarget, [{
+                    x: labels, y: values, type: 'bar', marker: {color: accent}
+                }], { margin: {t:10, b:20, l:30, r:10}, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: {size: 10} }, {displayModeBar: false});
+            } else {
+                Plotly.newPlot(plotlyTarget, [{
+                    r: values, theta: labels, type: 'scatterpolar', fill: 'toself',
+                    fillcolor: `${accent}40`, line: {color: accent}
+                }], { polar: { radialaxis: { visible: true, range: [0, 100], gridcolor: 'rgba(0,0,0,0.1)' }, angularaxis: { gridcolor: 'rgba(0,0,0,0.1)' } }, margin: {t:30, b:30, l:30, r:30}, paper_bgcolor: 'rgba(0,0,0,0)', font: {size: 10} }, {displayModeBar: false});
+            }
+        };
+
+        setTimeout(() => loadChatHistory(), 1000);
+        setInterval(() => loadChatHistory(), 10000);
+        document.getElementById('chatInput').addEventListener('keypress', function (e) { if (e.key === 'Enter') sendMsg(); });
+    </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+{
+  "users": {
+    "82u2YlE5HMQ21XUNQXv2": {
+      "pin": "$2b$12$sNQ9wPaebY87V3sJji5NMONpqp2Fdr5LKFmQKsiGuTaaVwE7d9ufa",
+      "role": "student",
+      "program": "program_b",
+      "name": "test_user_4"
+    },
+    "WsU9agnE6rO0Mps7BHqE": {
+      "pin": "$2b$12$4KH7H0IV8OQ9vvt5nZHClOEOK6h.uZWA1UxU.buHvtwC.23JGEUhi",
+      "role": "student",
+      "programs": [
+        "고독한 독서가",
+        "봉사활동을 하자"
+      ],
+      "program": "고독한 독서가",
+      "name": "김수아"
+    },
+    "XB0RLGT9PY4Y08QNvgF5": {
+      "pin": "$2b$12$LFSJnsg2RO4S1uZeqkLu8OvjwhxUVg7GY1E.n.ruWVt7ii/aH8RLe",
+      "role": "student",
+      "program": "program_a",
+      "name": "test_user_3"
+    },
+    "ncWp01deeMueddk5wmil": {
+      "pin": "$2b$12$l6b8KLayK7cFJ6jIQhOQaeGte1TSG/fCockZpn2Hs2XWlr0nnQHSW",
+      "role": "student",
+      "program": "program_a",
+      "name": "test_user_2"
+    },
+    "xjzyz4U0glEEwtTk0ANM": {
+      "pin": "$2b$12$RTmm35oC9UaOT.M.YlKiCOSSUwdSmVkg28dvJM5C6HXMfwSvj2c7W",
+      "role": "parent",
+      "child_name": "김수아, 김해리",
+      "name": "김수아 아버지"
+    }
+  },
+  "programs": {
+    "dmZ8kYMsQXziKmdcJwNJ": {
+      "max_participants": 8,
+      "desc": "다양한 장소에서 함께 독서하고 나누다",
+      "workflow": "2026-04-12 ~ 2026-04-18 [14:00~16:00]  OT & 책선정 (준비물 : 편한복장)\n- 조 편성 : 우리 조의 이름은 \"###\"이에요\n- 역할 : \"###\"조에서 저의 역할은 \"$$$\"이에요\n- 내가 선정한 책 : 2권의 책 & 이유 찾기\n2026-04-19 ~ 2026-04-25 [14:00~16:00] 1차 독서 + 나눔\n2026-04-26 ~ 2026-05-02 [14:00~16:00] 2차 독서 + 나눔\n2026-05-03 ~ 2026-05-09 [14:00~16:00] 3차 독서 + 나눔\n2026-05-10 ~ 2026-05-16 [14:00~16:00] 4차 독서 + 나눔\n2026-05-17 ~ 2026-05-23 [14:00~16:00] 5차 독서 + 나눔",
+      "start_date": "2026-03-23",
+      "yt_link": "https://youtu.be/J0fyPxMs-Hs",
+      "end_date": "2026-04-11",
+      "name": "고독한 독서가"
+    },
+    "kJVD5F3KGPVfRsum9v1g": {
+      "yt_link": "https://youtu.be/vMIW8wyOQQA",
+      "desc": "'틀림'이 아닌 '다름'을 이해하는 시간",
+      "start_date": "2026-03-23",
+      "max_participants": 15,
+      "workflow": "2026-04-19 ~ 2026-04-25  [14:00~16:00]  OT & 장소선정  (준비물: 편한 복장)\n2026-04-26 ~ 2026-05-02 [14:00~16:00] 1차 방문 + 나눔\n2026-05-03 ~ 2026-05-09[14:00~16:00] 2차 방문 + 나눔\n2026-05-10 ~ 2026-05-16 [14:00~16:00] 3차 방문 + 나눔\n2026-05-17 ~ 2026-05-23 [14:00~16:00]4차 방문 + 나눔\n2026-05-24 ~ 2026-05-30 [14:00~16:00] 5차 방문 + 나눔",
+      "end_date": "2026-04-18",
+      "name": "봉사활동을 하자"
+    },
+    "pdDnlCMwD8nvOWgv3v30": {
+      "name": "특강",
+      "calendar_color": "#10b981",
+      "start_date": "2026-03-23",
+      "media_type": "image",
+      "image_url": "/uploads/4fa57c688f3047ddb8d2b1a566090f06.png",
+      "color": "#9ebcee",
+      "max_participants": 10,
+      "image_base64": "",
+      "workflow": "2026-04-06 [14:00~16:00] 1차\n2026-04-13 [17:30~19:30] 2차",
+      "desc": "특별한 시간을 드립니다.",
+      "end_date": "2026-04-05",
+      "yt_link": ""
+    }
+  },
+  "billing": {
+    "QiuNkN1kkTI7nFRILmKz": {
+      "note": "",
+      "date": "2026-03-30",
+      "student_name": "김수아",
+      "program_name": "교재비",
+      "method": "현금",
+      "amount": 5000
+    },
+    "iLYivjnBJjYtkxdUolhT": {
+      "note": "",
+      "date": "2026-03-20",
+      "student_name": "홍길동",
+      "program_name": "",
+      "method": "카드결제",
+      "amount": 5000
+    }
+  },
+  "attendance": {},
+  "evaluations": {},
+  "chats": {}
+}

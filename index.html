@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="platform_title">Youth Canvas | 청소년 시설 통합 플랫폼</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>document.documentElement.style.zoom = (localStorage.getItem('yc_zoom') || '100') + '%';</script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root, [data-theme="bench"] {
+            /* Bench Theme (Default) - 이미지 기반 웜그레이 모카 베이스 */
+            --bg: #d4cec4; 
+            --surface: #d4cec4; 
+            --text-main: #333333; 
+            --text-muted: #666666;
+            --primary: #2A9D8F; /* Title Badge & Login Btn (Teal) */
+            --accent: #3B82F6; /* Primary Card Btn (Blue) */
+            --badge-status-bg: #2A9D8F;
+            --badge-status-text: #ffffff;
+            --badge-dday-bg: #ee7063;
+            --badge-dday-text: #ffffff;
+            --shadow-out: 14px 14px 28px #aba69e, -14px -14px 28px #fdf6ea;
+            --shadow-in: inset 8px 8px 16px #aba69e, inset -8px -8px 16px #fdf6ea;
+            --shadow-sm: 6px 6px 12px #aba69e, -6px -6px 12px #fdf6ea;
+            --radius-card: 28px; 
+            --radius-inner: 18px;
+            --radius-pill: 50px;
+        }
+
+        [data-theme="mint"] {
+            --bg: #F4F9F8; --surface: #F4F9F8;
+            --text-main: #1F2937; --text-muted: #6B7280;
+            --primary: #049D79; --accent: #60A5FA;
+            --badge-status-bg: #E6F4F1;
+            --badge-status-text: #059669;
+            --badge-dday-bg: #FCE8E8;
+            --badge-dday-text: #EF4444;
+            --shadow-out: 12px 12px 24px #dce5e3, -12px -12px 24px #ffffff;
+            --shadow-in: inset 6px 6px 12px #dce5e3, inset -6px -6px 12px #ffffff;
+            --shadow-sm: 4px 4px 8px #dce5e3, -4px -4px 8px #ffffff;
+        }
+
+        [data-theme="peach"] {
+            --bg: #FDF6F2; --surface: #FDF6F2;
+            --text-main: #5C4B41; --text-muted: #8A786E;
+            --primary: #E89A86; --accent: #60A5FA;
+            --badge-status-bg: #FFF1F0;
+            --badge-status-text: #F97316;
+            --badge-dday-bg: #FEE2E2;
+            --badge-dday-text: #EF4444;
+            --shadow-out: 12px 12px 24px #e8e2de, -12px -12px 24px #ffffff;
+            --shadow-in: inset 6px 6px 12px #e8e2de, inset -6px -6px 12px #ffffff;
+            --shadow-sm: 4px 4px 8px #e8e2de, -4px -4px 8px #ffffff;
+        }
+
+        [data-theme="blue"] {
+            --bg: #E8F0F8; --surface: #E8F0F8;
+            --text-main: #1E3A8A; --text-muted: #64748B;
+            --primary: #3B82F6; --accent: #3B82F6;
+            --badge-status-bg: #E0F2FE;
+            --badge-status-text: #0284C7;
+            --badge-dday-bg: #DBEAFE;
+            --badge-dday-text: #2563EB;
+            --shadow-out: 12px 12px 24px #cfd7df, -12px -12px 24px #ffffff;
+            --shadow-in: inset 6px 6px 12px #cfd7df, inset -6px -6px 12px #ffffff;
+            --shadow-sm: 4px 4px 8px #cfd7df, -4px -4px 8px #ffffff;
+        }
+
+        body { 
+            font-family: 'Nunito', 'Noto Sans KR', sans-serif; 
+            background-color: var(--bg); 
+            color: var(--text-main); 
+            transition: all 0.5s ease;
+            overflow-x: hidden;
+        }
+
+        /* Neumorphic Utilities */
+        .ui-card { 
+            background-color: var(--surface); 
+            box-shadow: var(--shadow-out); 
+            border-radius: var(--radius-card); 
+            transition: all 0.4s ease; 
+        }
+        .ui-shadow-in {
+            background-color: var(--surface);
+            box-shadow: var(--shadow-in);
+        }
+        .ui-btn { 
+            background-color: var(--surface); 
+            box-shadow: var(--shadow-sm); 
+            color: var(--text-main); 
+            transition: all 0.2s ease; 
+            cursor: pointer;
+        }
+        .ui-btn:active {
+            box-shadow: var(--shadow-in);
+        }
+        .ui-btn:hover { color: var(--primary); }
+        
+        .ui-btn-ghost {
+            background-color: transparent;
+            box-shadow: var(--shadow-sm);
+            border-radius: var(--radius-inner);
+            transition: all 0.2s ease;
+        }
+        .ui-btn-ghost:active { box-shadow: var(--shadow-in); }
+
+        .ui-btn-primary { 
+            background-color: var(--accent); 
+            box-shadow: var(--shadow-sm); 
+            color: #ffffff; 
+            transition: all 0.2s ease; 
+            border: none; 
+            cursor: pointer; 
+        }
+        .ui-btn-primary:active { transform: scale(0.96); box-shadow: inset 4px 4px 8px rgba(0,0,0,0.2); }
+
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 10px; opacity: 0.3; }
+        .keep-all { word-break: keep-all; overflow-wrap: break-word; }
+
+        /* Floating 3D Spheres Background */
+        .sphere {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--surface);
+            box-shadow: var(--shadow-out);
+            z-index: -1;
+            animation: float 6s ease-in-out infinite alternate;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-15px); }
+        }
+        .lang-btn { transition: all 0.2s; cursor: pointer; }
+        .lang-btn.active { box-shadow: var(--shadow-in); background-color: var(--surface); }
+    </style>
+    <script src="i18n.js"></script>
+</head>
+<body class="relative min-h-screen pt-12 pb-24 px-4 md:px-12 w-full max-w-screen-2xl mx-auto">
+
+    <!-- 3D Decorative Spheres & Sparkle -->
+    <div class="sphere hidden lg:block w-24 h-24 top-[20%] right-[30%] opacity-80" style="animation-delay: 0s;"></div>
+    <div class="sphere hidden lg:block w-40 h-40 bottom-[5%] left-[5%] opacity-90" style="animation-delay: 1s;"></div>
+    <div class="sphere hidden md:block w-16 h-16 bottom-[8%] left-[18%] opacity-70" style="animation-delay: 2s;"></div>
+    <div class="absolute bottom-[2%] right-[5%] z-[-1] opacity-60 text-5xl text-white drop-shadow-lg hidden md:block">✨</div>
+
+    <!-- Top Navigation -->
+    <nav class="max-w-7xl mx-auto flex justify-between items-center mb-8 relative z-10 w-full px-1">
+        <div class="flex gap-6 items-center">
+            <a href="index.html" data-i18n="nav_home" class="text-[17px] font-black text-[var(--primary)] border-b-2 border-[var(--primary)] pb-1">탐색 홈</a>
+            <a href="calendar.html" data-i18n="nav_calendar" class="text-[17px] font-extrabold text-[var(--text-muted)] hover:text-[var(--text-main)] transition pb-1">전체 일정표</a>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-[14px] font-extrabold text-[var(--text-muted)] px-3 py-1 ui-shadow-in rounded-[var(--radius-pill)]">B2B SaaS</span>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-6 relative z-10 w-full">
+        <!-- Left: Branding -->
+        <div>
+            <div class="flex items-center gap-2 mb-3 px-1">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center font-black text-white text-[16px] shadow-md" style="background-color: var(--primary);">Y</div>
+                <span data-i18n="platform_title" class="text-[16px] font-extrabold text-[var(--text-main)] opacity-90">청소년 시설 통합 관리 플랫폼</span>
+            </div>
+            <h1 class="text-5xl md:text-6xl font-black text-[var(--text-main)] mb-3 tracking-tighter drop-shadow-sm px-1">Youth Canvas</h1>
+            <p data-i18n="hero_desc" class="text-[var(--text-main)] font-extrabold text-[18px] opacity-80 break-keep px-1">학원, 수련관, 특강 프로그램을 한눈에 탐색하고 지원하세요.</p>
+        </div>
+
+        <!-- Right: Theme Switcher & Language Switcher & Actions -->
+        <div class="flex flex-col items-end gap-3">
+            <!-- Language Switcher -->
+            <div class="flex items-center gap-2 ui-shadow-in px-4 py-1.5 rounded-full w-max mb-1">
+                <button onclick="setLanguage('ko')" data-lang="ko" class="lang-btn px-3 py-1 text-[14px] font-black rounded-full transition">KO</button>
+                <button onclick="setLanguage('en')" data-lang="en" class="lang-btn px-3 py-1 text-[14px] font-black rounded-full transition">EN</button>
+            </div>
+            
+            <div class="flex items-center gap-3 ui-shadow-in px-5 py-2.5 rounded-full w-max">
+                <span data-i18n="themes" class="text-[16px] font-black text-[var(--text-muted)] mr-1">Themes:</span>
+                <button onclick="setTheme('bench')" class="theme-dot w-6 h-6 rounded-full border-[2.5px] border-transparent shadow-[0_2px_5px_rgba(0,0,0,0.2)] transition hover:scale-110" style="background: linear-gradient(135deg, #d2ccc4, #a39b8e);" title="Bench (Default)"></button>
+                <button onclick="setTheme('mint')" class="theme-dot w-6 h-6 rounded-full border-[2.5px] border-transparent shadow-[0_2px_5px_rgba(0,0,0,0.2)] transition hover:scale-110" style="background: linear-gradient(135deg, #2A9D8F, #1c7c70);" title="Mint"></button>
+                <button onclick="setTheme('peach')" class="theme-dot w-6 h-6 rounded-full border-[2.5px] border-transparent shadow-[0_2px_5px_rgba(0,0,0,0.2)] transition hover:scale-110" style="background: linear-gradient(135deg, #ffcba4, #e89a86);" title="Peach"></button>
+                <button onclick="setTheme('blue')" class="theme-dot w-6 h-6 rounded-full border-[2.5px] border-transparent shadow-[0_2px_5px_rgba(0,0,0,0.2)] transition hover:scale-110" style="background: linear-gradient(135deg, #a1c4fd, #c2e9fb);" title="Blue"></button>
+            </div>
+            <button onclick="window.location.href='login_v3.html'" data-i18n="login_apply" class="px-7 py-3 rounded-full text-white font-black text-[18px] shadow-md hover:brightness-105 active:scale-95 transition" style="background-color: var(--primary);">로그인 / 수강신청</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto relative z-10 w-full mb-10">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 gap-4 px-1">
+            <div>
+                <h2 data-i18n="trending_title" class="text-3xl font-black text-[var(--text-main)] mb-3 tracking-tight">지금 뜨고 있는 활동</h2>
+                <p data-i18n="trending_desc" class="text-[var(--text-main)] font-extrabold text-[16px] opacity-80 break-keep">실시간 모집 현황과 대표 미디어, 전체 일정표를 확인할 수 있습니다.</p>
+            </div>
+            <button onclick="loadRealPrograms()" class="ui-btn-ghost px-5 py-2.5 text-[17px] text-[var(--text-main)] font-black flex items-center gap-2">
+                <span class="text-blue-500 text-lg">🔄</span> <span data-i18n="sync_data">최신 데이터 동기화</span>
+            </button>
+        </div>
+
+        <div id="dynamic-program-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 pb-10">
+            <div class="ui-card p-10 text-center text-[var(--text-muted)] font-black lg:col-span-3 text-lg" data-i18n="loading_data">
+                🚀 서버에서 데이터를 불러오는 중입니다...
+            </div>
+        </div>
+
+        <!-- B2B SaaS 패키지 -->
+        <section class="mt-20 mb-10 px-1 border-t border-[var(--text-muted)] border-opacity-20 pt-16">
+            <div class="text-center mb-10">
+                <span data-i18n="b2b_badge" class="px-4 py-1.5 rounded-full ui-shadow-in text-[15px] font-black text-[var(--primary)] mb-4 inline-block">B2B Solutions</span>
+                <h2 data-i18n="b2b_title" class="text-3xl font-black text-[var(--text-main)] mb-3 tracking-tight">기관 전용 도입 패키지</h2>
+                <p data-i18n="b2b_desc" class="text-[var(--text-main)] font-extrabold text-[17px] opacity-80 keep-all px-4">무거운 프로그램 설치 없이, 링크 하나로 관리자와 행정, 학부모, 학생이 모두 연결되는 초경량 CRM을 만나보세요.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 px-4 sm:px-0">
+                <!-- Standard -->
+                <div class="ui-card p-8 flex flex-col relative overflow-hidden">
+                    <div data-i18n="pkg_standard" class="text-xl font-black text-[var(--text-muted)] mb-2">Standard</div>
+                    <div class="text-3xl font-black text-[var(--text-main)] mb-6">30<span data-i18n="pkg_unit" class="text-lg">만원</span></div>
+                    <ul class="text-[16px] font-extrabold text-[var(--text-main)] opacity-80 space-y-3 mb-8 flex-1">
+                        <li class="flex gap-2"><span>✅</span> <span data-i18n="pkg_s_1">기본 DB 환경 세팅 (Firebase)</span></li>
+                        <li class="flex gap-2"><span>✅</span> <span data-i18n="pkg_s_2">검증된 어드민 템플릿 제공</span></li>
+                        <li class="flex gap-2 text-[var(--text-muted)]"><span>❌</span> <span data-i18n="pkg_s_3">커스텀 디자인 제외</span></li>
+                        <li class="flex gap-2 text-[var(--text-muted)]"><span>❌</span> <span data-i18n="pkg_s_4">구매자 자체 AS</span></li>
+                    </ul>
+                    <button data-i18n="pkg_q_intro" class="ui-btn w-full py-3 rounded-[var(--radius-inner)] font-black text-[17px]">도입 문의하기</button>
+                </div>
+                
+                <!-- Deluxe -->
+                <div class="ui-card p-8 flex flex-col relative overflow-hidden border-2 border-[var(--primary)] transform md:-translate-y-4">
+                    <div data-i18n="pkg_recommend" class="absolute top-0 right-0 bg-[var(--primary)] text-white text-[13px] font-black px-4 py-1 rounded-bl-xl">RECOMMEND</div>
+                    <div data-i18n="pkg_deluxe" class="text-xl font-black text-[var(--primary)] mb-2">Deluxe</div>
+                    <div class="text-4xl font-black text-[var(--primary)] mb-6">80<span data-i18n="pkg_unit" class="text-lg">만원</span></div>
+                    <ul class="text-[16px] font-extrabold text-[var(--text-main)] space-y-3 mb-8 flex-1">
+                        <li class="flex gap-2"><span>✅</span> <span data-i18n="pkg_d_1">Standard 모든 기능 포함</span></li>
+                        <li class="flex gap-2"><span>✅</span> <span data-i18n="pkg_d_2">기관 로고 및 테마 컬러 맞춤 튜닝</span></li>
+                        <li class="flex gap-2"><span>✅</span> <span data-i18n="pkg_d_3">1개월 무상 버그 AS 보장</span></li>
+                        <li class="flex gap-2"><span>✅</span> <span data-i18n="pkg_d_4">초기 데이터 마이그레이션 1회</span></li>
+                    </ul>
+                    <button data-i18n="pkg_q_select" class="ui-btn-primary w-full py-3 rounded-[var(--radius-inner)] font-black text-[17px]">인기 패키지 선택</button>
+                </div>
+                
+                <!-- Premium -->
+                <div class="ui-card p-8 flex flex-col relative overflow-hidden">
+                    <div data-i18n="pkg_premium" class="text-xl font-black text-[#8b5cf6] mb-2">Premium</div>
+                    <div class="text-3xl font-black text-[var(--text-main)] mb-6">150<span data-i18n="pkg_unit" class="text-lg">만원</span></div>
+                    <ul class="text-[16px] font-extrabold text-[var(--text-main)] opacity-80 space-y-3 mb-8 flex-1">
+                        <li class="flex gap-2"><span>✅</span> <span data-i18n="pkg_p_1">Deluxe 모든 기능 포함</span></li>
+                        <li class="flex gap-2"><span>✅</span> <span data-i18n="pkg_p_2">우리 기관만의 추가 탭 맞춤 개발</span></li>
+                        <li class="flex gap-2"><span>✅</span> <span data-i18n="pkg_p_3">6개월 책임 무상 AS 보장</span></li>
+                        <li class="flex gap-2"><span>✅</span> <span data-i18n="pkg_p_4">프라이빗 서버 아키텍처 지원</span></li>
+                    </ul>
+                    <button data-i18n="pkg_q_vvip" class="ui-btn w-full py-3 rounded-[var(--radius-inner)] font-black text-[17px]">VVIP 상담 신청</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Workflow Modal (Detailed View) -->
+    <div id="workflowModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50">
+                <h3 id="modalTitle" class="text-xl font-extrabold text-gray-800 flex items-center gap-2" data-i18n="modal_schedule_title">🗓️ 세부 일정 요약표</h3>
+                <button onclick="closeWorkflowModal()" class="text-gray-400 hover:text-red-500 text-3xl font-black transition leading-none drop-shadow-sm">&times;</button>
+            </div>
+            
+            <div class="p-0 sm:p-6 overflow-y-auto custom-scrollbar bg-white">
+                <table class="w-full text-[17px] text-left border-collapse sm:rounded-xl overflow-hidden sm:shadow-sm sm:border border-gray-100">
+                    <thead class="bg-gray-50 text-gray-600 font-extrabold border-b border-gray-200 text-[15px] hidden sm:table-header-group">
+                        <tr>
+                            <th data-i18n="table_date" class="px-5 py-3.5 w-[25%] text-center border-r border-gray-100">일정 (기간)</th>
+                            <th data-i18n="table_time" class="px-5 py-3.5 w-[15%] text-center border-r border-gray-100">시간</th>
+                            <th data-i18n="table_content" class="px-5 py-3.5 w-[40%] border-r border-gray-100">세부 내용</th>
+                            <th data-i18n="table_remark" class="px-5 py-3.5 w-[20%] text-center">비고</th>
+                        </tr>
+                    </thead>
+                    <tbody id="workflowTableBody" class="divide-y divide-gray-100 text-gray-700 flex-1 sm:flex-none font-bold">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="p-5 border-t border-gray-100 bg-gray-50 flex justify-end">
+                <button onclick="closeWorkflowModal()" data-i18n="modal_close" class="bg-gray-800 hover:bg-black text-white px-8 py-3 rounded-2xl font-black text-[17px] transition shadow-md">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // 🌟 1. Theme Switcher Logic
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('youth_canvas_main_theme', theme);
+            
+            document.querySelectorAll('.theme-dot').forEach(btn => {
+                btn.style.borderColor = 'transparent';
+                btn.style.transform = 'scale(1)';
+            });
+            const targetBtn = document.querySelector(`.theme-dot[onclick="setTheme('${theme}')"]`);
+            if (targetBtn) {
+                targetBtn.style.borderColor = 'rgba(255,255,255,0.95)';
+                targetBtn.style.transform = 'scale(1.15)';
+            }
+        }
+        const savedTheme = localStorage.getItem('youth_canvas_main_theme') || 'bench';
+        setTheme(savedTheme);
+
+        // 🌟 2. Data Fetching API Logic
+        const API_BASE_URL = "http://127.0.0.1:8000";
+        window.fetchedPrograms = [];
+
+        function getYoutubeEmbedUrl(url) {
+            if (!url) return null;
+            const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i;
+            const match = url.match(regExp);
+            return (match && match[1]) ? `https://www.youtube.com/embed/${match[1]}` : null;
+        }
+
+        function loadRealPrograms() {
+            const container = document.getElementById('dynamic-program-list');
+            if(!container) return;
+            container.innerHTML = `<div class="ui-card p-10 text-center text-[var(--text-muted)] font-black lg:col-span-3 text-lg">${getI18nText('syncing')}</div>`;
+
+            fetch(`${API_BASE_URL}/api/programs`)
+                .then(res => { if(!res.ok) throw new Error(); return res.json(); })
+                .then(programs => {
+                    container.innerHTML = '';
+                    window.fetchedPrograms = programs; 
+
+                    if(programs.length === 0) {
+                        container.innerHTML = `<div class="ui-card p-10 text-center text-[var(--text-muted)] font-black lg:col-span-3 text-lg">${getI18nText('no_programs')}</div>`;
+                        return;
+                    }
+
+                    programs.forEach((prog, index) => {
+                        let dDayHtml = '';
+                        let isClosed = false;
+                        
+                        if (prog.end_date) {
+                            const today = new Date(); today.setHours(0,0,0,0);
+                            const endDate = new Date(prog.end_date); endDate.setHours(0,0,0,0);
+                            const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+                            
+                            if (diffDays > 0) dDayHtml = `<span class="px-3 py-1 font-black rounded-full text-[13px] shadow-sm" style="background-color: var(--badge-dday-bg); color: var(--badge-dday-text);">D-${diffDays}</span>`;
+                            else if (diffDays === 0) dDayHtml = `<span class="px-3 py-1 font-black rounded-full text-[13px] shadow-sm" style="background-color: var(--badge-dday-bg); color: var(--badge-dday-text);">${getI18nText('d_day')}</span>`;
+                            else { isClosed = true; dDayHtml = `<span class="px-3 py-1 bg-gray-400 text-white font-black rounded-full text-[13px] shadow-sm">${getI18nText('status_ended')}</span>`; }
+                        }
+
+                        const statusBadge = isClosed 
+                            ? `<span class="px-3 py-1 bg-gray-500 text-white font-black rounded-full text-[13px] shadow-sm">${getI18nText('status_closed')}</span>`
+                            : `<span class="px-3 py-1 font-black rounded-full text-[13px] shadow-sm flex items-center gap-1.5" style="background-color: var(--badge-status-bg); color: var(--badge-status-text);"><span class="w-1.5 h-1.5 rounded-full" style="background-color: var(--badge-status-text);"></span>${getI18nText('status_recruiting')}</span>`;
+                        
+                        const btnClass = isClosed ? "bg-gray-400 cursor-not-allowed opacity-80" : "ui-btn-primary";
+                        const btnText = isClosed ? getI18nText('apply_closed') : getI18nText('apply_now');
+                        
+                        let embedUrl = getYoutubeEmbedUrl(prog.yt_link);
+                        let mediaHtml = embedUrl 
+                            ? `<iframe class="w-full h-full object-cover" src="${embedUrl}" frameborder="0" allowfullscreen></iframe>`
+                            : `<img src="https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80" alt="cover" class="w-full h-full object-cover ${isClosed ? 'grayscale opacity-80' : ''}">`;
+
+                        const currentCount = prog.current_participants || 0;
+                        const maxCount = prog.max_participants || 10;
+                        const progressPercent = Math.min((currentCount / maxCount) * 100, 100);
+
+                        container.innerHTML += `
+                            <div class="ui-card p-4 sm:p-5 flex flex-col h-full relative" style="border: 1px solid rgba(255,255,255,0.2);">
+                                <div class="w-full h-44 md:h-48 rounded-[var(--radius-inner)] overflow-hidden shadow-inner mb-5 bg-gray-200">
+                                    ${mediaHtml}
+                                </div>
+                                <div class="flex gap-2 mb-3 px-1.5">
+                                    ${statusBadge}
+                                    ${dDayHtml}
+                                </div>
+                                <div class="px-1.5 mb-7 flex-1">
+                                    <h3 class="text-[25px] font-black text-[var(--text-main)] mb-1 drop-shadow-sm tracking-tight">${prog.name}</h3>
+                                    <p class="text-[16px] font-extrabold text-[var(--text-main)] opacity-75 keep-all leading-snug">${prog.desc}</p>
+                                </div>
+                                <div class="px-1.5 mb-5 text-[var(--text-main)]">
+                                    <div class="flex justify-between text-[14px] font-black mb-2 opacity-80 border-b border-black/5 pb-2">
+                                        <span>${getI18nText('current_participants')}</span>
+                                        <span>${currentCount}/${maxCount}${getI18nText('unit_person')}</span>
+                                    </div>
+                                    <div class="h-2.5 w-full rounded-full ui-shadow-in overflow-hidden p-0.5">
+                                        <div class="h-full rounded-full transition-all duration-1000" style="width: ${progressPercent}%; background-color: var(--accent);"></div>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3 mb-6 px-1.5">
+                                    <div class="ui-shadow-in py-2.5 px-1 rounded-[var(--radius-inner)] flex flex-col justify-center items-center text-center">
+                                        <span class="text-[13px] font-extrabold text-[var(--text-muted)] mb-1 drop-shadow-sm">${getI18nText('recv_start')}</span>
+                                        <span class="text-[15px] font-black text-[var(--text-main)] drop-shadow-sm">${prog.start_date || '미정'}</span>
+                                    </div>
+                                    <div class="ui-shadow-in py-2.5 px-1 rounded-[var(--radius-inner)] flex flex-col justify-center items-center text-center">
+                                        <span class="text-[13px] font-extrabold text-[var(--text-muted)] mb-1 drop-shadow-sm">${getI18nText('recv_end')}</span>
+                                        <span class="text-[15px] font-black text-[var(--text-main)] drop-shadow-sm">${prog.end_date || '미정'}</span>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3 px-1 mt-auto">
+                                    <button onclick="openWorkflowModal(${index})" class="ui-btn-ghost py-3 rounded-[var(--radius-inner)] flex items-center justify-center gap-1.5 text-[var(--text-main)] font-black text-[15px]">
+                                        ${getI18nText('view_detail')}
+                                    </button>
+                                    <button onclick="window.location.href='login_v3.html'" class="${btnClass} py-3 rounded-[var(--radius-inner)] flex items-center justify-center gap-1.5 font-black text-[15px]" ${isClosed ? 'disabled' : ''}>
+                                        ${btnText}
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                })
+                .catch(err => { 
+                    if(container) container.innerHTML = `<div class="ui-card p-10 text-center text-red-500 font-bold lg:col-span-3">${getI18nText('server_fail')}</div>`; 
+                });
+        }
+
+        window.openWorkflowModal = function(index) {
+            const prog = window.fetchedPrograms[index];
+            const tbody = document.getElementById('workflowTableBody');
+            document.getElementById('modalTitle').innerHTML = `🗓️ [${prog.name}] ${getI18nText('modal_schedule_title')}`;
+            tbody.innerHTML = '';
+            
+            if (!prog.workflow) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-gray-400 font-black bg-white">${getI18nText('no_schedule')}</td></tr>`;
+            } else {
+                const lines = prog.workflow.split('\n');
+                lines.forEach(line => {
+                    const trimmed = line.trim();
+                    if (trimmed === '') return;
+                    
+                    if (trimmed.startsWith('-')) {
+                        tbody.innerHTML += `
+                            <tr class="bg-gray-50/50 transition border-b border-gray-100 flex flex-col sm:table-row">
+                                <td class="px-5 py-2 sm:py-3.5 sm:border-r border-gray-100 hidden sm:table-cell"></td>
+                                <td class="px-5 py-2 sm:py-3.5 sm:border-r border-gray-100 hidden sm:table-cell"></td>
+                                <td colspan="2" class="px-5 py-2 sm:py-3.5 text-[17px] sm:text-[16px] text-gray-500 font-extrabold sm:pl-8 break-keep">
+                                    <div class="flex gap-2">
+                                        <span class="text-blue-400 font-black pl-4 sm:pl-0 shrink-0">↳</span> 
+                                        <span class="leading-relaxed keep-all">${trimmed.substring(1).trim()}</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    } else {
+                        let dateStr = "", timeStr = "", contentStr = "", remarkStr = "";
+                        const timeMatch = trimmed.match(/\[(.*?)\]/);
+                        if (timeMatch) {
+                            timeStr = timeMatch[1];
+                            const parts = trimmed.split(timeMatch[0]);
+                            dateStr = parts[0].trim();
+                            let rest = parts[1] ? parts[1].trim() : "";
+                            
+                            const remarkMatch = rest.match(/\(([^)]+)\)$/);
+                            if (remarkMatch) {
+                                remarkStr = remarkMatch[1];
+                                contentStr = rest.replace(remarkMatch[0], '').trim();
+                            } else {
+                                contentStr = rest;
+                            }
+                            
+                            tbody.innerHTML += `
+                                <tr class="hover:bg-blue-50/50 transition bg-white border-b border-gray-100 flex flex-col sm:table-row py-3 sm:py-0">
+                                    <td class="px-5 py-1.5 sm:py-4 font-black text-blue-600 sm:bg-gray-50/30 sm:text-center text-[17px] sm:text-[16px] sm:border-r border-gray-100 keep-all"><span class="sm:hidden inline-block w-12 text-gray-400 text-[15px] text-left">${getI18nText('table_date')}</span>${dateStr}</td>
+                                    <td class="px-5 py-1.5 sm:py-4 font-extrabold text-indigo-500 sm:text-center text-[17px] sm:text-[16px] sm:bg-indigo-50/20 sm:border-r border-gray-100 keep-all"><span class="sm:hidden inline-block w-12 text-gray-400 text-[15px] text-left">${getI18nText('table_time')}</span>⏰ ${timeStr}</td>
+                                    <td class="px-5 py-1.5 sm:py-4 font-black text-gray-800 text-[19px] sm:text-[17px] sm:border-r border-gray-100 mt-2 sm:mt-0 leading-relaxed keep-all"><span class="sm:hidden inline-block w-12 text-gray-400 text-[15px] font-bold text-left">${getI18nText('table_content')}</span>${contentStr}</td>
+                                    <td class="px-5 py-1.5 sm:py-4 font-extrabold text-red-400 text-[17px] sm:text-[16px] sm:bg-red-50/10 sm:text-center keep-all">${remarkStr ? `<span class="sm:hidden inline-block w-12 text-gray-300 text-[15px] text-left">${getI18nText('table_remark')}</span>${remarkStr}` : ''}</td>
+                                </tr>
+                            `;
+                        } else {
+                            tbody.innerHTML += `
+                                <tr class="bg-gray-100/50 border-b border-gray-200">
+                                    <td colspan="4" class="px-5 py-3 font-black text-gray-400 text-center text-[15px] keep-all">${trimmed}</td>
+                                </tr>
+                            `;
+                        }
+                    }
+                });
+            }
+            document.getElementById('workflowModal').classList.remove('hidden');
+        }
+        
+        window.closeWorkflowModal = function() {
+            document.getElementById('workflowModal').classList.add('hidden');
+        }
+
+        // Initialize Call
+        document.addEventListener('DOMContentLoaded', loadRealPrograms);
+    </script>
+</body>
+</html>

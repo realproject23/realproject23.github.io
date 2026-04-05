@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="청소년의 꿈을 그리는 공간 - Youth Canvas. 청소년 활동 프로그램 관리 시스템">
+  <title>청소년의 꿈을 그리는 공간 | Youth Canvas</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-warm">
+
+<div class="app-shell">
+  <!-- ─── 테마 스위처 ─── -->
+  <div class="theme-switcher" id="theme-switcher">
+    <div class="theme-dot active" data-theme="warm"><span class="theme-tooltip">🍑 Warm Peach</span></div>
+    <div class="theme-dot" data-theme="mono"><span class="theme-tooltip">⚪ Classic Mono</span></div>
+    <div class="theme-dot" data-theme="mint"><span class="theme-tooltip">🌿 Cool Mint</span></div>
+  </div>
+
+  <!-- ─── 헤더 ─── -->
+  <header class="header">
+    <span class="header-title" id="header-title">청소년의 꿈을 그리는 공간</span>
+    <span class="header-subtitle">Youth Canvas</span>
+  </header>
+
+  <!-- ─── 메인 컨텐츠 ─── -->
+  <main class="content">
+
+    <!-- 페이지 1: 찾아보기 -->
+    <section class="page active" id="page-browse">
+      <div class="demo-banner" id="demo-banner"></div>
+      <h2 class="section-title">🔍 우리 기관 프로그램 찾아보기</h2>
+      <p class="section-subtitle">다양한 프로그램을 둘러보고 마음에 드는 활동에 참여해 보세요.</p>
+      <div id="program-list" class="program-grid"></div>
+    </section>
+
+    <!-- 페이지 2: 전체 일정 -->
+    <section class="page" id="page-calendar">
+      <h2 class="section-title">📅 전체 일정 캘린더</h2>
+      <p class="section-subtitle">모든 프로그램의 일정을 한눈에 확인하세요.</p>
+      <div class="neu-card">
+        <div class="calendar-nav">
+          <button class="neu-btn neu-btn-sm" id="cal-prev">◀</button>
+          <span class="calendar-nav-title" id="cal-title"></span>
+          <button class="neu-btn neu-btn-sm" id="cal-next">▶</button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+      <div id="calendar-events"></div>
+    </section>
+
+    <!-- 페이지 3: 나의 이야기 (학생) -->
+    <section class="page" id="page-student">
+      <div id="student-login">
+        <div class="login-container">
+          <div class="login-icon">📖</div>
+          <h2 class="login-title">나의 이야기</h2>
+          <div class="alert alert-info">💡 데모 모드: 이름을 선택하면 바로 입장됩니다.</div>
+          <div class="form-group">
+            <label class="form-label">이름 선택</label>
+            <select class="neu-input" id="student-select"></select>
+          </div>
+          <button class="neu-btn neu-btn-primary neu-btn-block mt-12" id="student-login-btn">입장하기</button>
+        </div>
+      </div>
+      <div id="student-dashboard" style="display:none;"></div>
+    </section>
+
+    <!-- 페이지 4: 학부모 라운지 -->
+    <section class="page" id="page-parent">
+      <div id="parent-login">
+        <div class="login-container">
+          <div class="login-icon">👨‍👩‍👧</div>
+          <h2 class="login-title">학부모 라운지</h2>
+          <div class="alert alert-info">💡 데모 모드: 이름을 선택하면 바로 입장됩니다.</div>
+          <div class="form-group">
+            <label class="form-label">보호자 이름 선택</label>
+            <select class="neu-input" id="parent-select"></select>
+          </div>
+          <button class="neu-btn neu-btn-primary neu-btn-block mt-12" id="parent-login-btn">입장하기</button>
+        </div>
+      </div>
+      <div id="parent-dashboard" style="display:none;"></div>
+    </section>
+
+    <!-- 페이지 5: 관리자 -->
+    <section class="page" id="page-admin">
+      <div id="admin-login">
+        <div class="login-container">
+          <div class="login-icon">🔒</div>
+          <h2 class="login-title">관계자 외 출입금지</h2>
+          <div class="alert alert-info">💡 데모 모드: 관리자를 선택하면 바로 입장됩니다.</div>
+          <div class="form-group">
+            <label class="form-label">관리자 선택</label>
+            <select class="neu-input" id="admin-select"></select>
+          </div>
+          <button class="neu-btn neu-btn-primary neu-btn-block mt-12" id="admin-login-btn">로그인</button>
+        </div>
+      </div>
+      <div id="admin-dashboard" style="display:none;"></div>
+    </section>
+
+  </main>
+
+  <!-- ─── 하단 탭바 ─── -->
+  <nav class="tabbar" id="tabbar"></nav>
+
+  <!-- ─── 팝업 ─── -->
+  <div class="popup-overlay" id="popup-overlay">
+    <div class="popup-content" id="popup-content"></div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="utils.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
