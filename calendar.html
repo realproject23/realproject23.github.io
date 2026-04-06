@@ -63,6 +63,7 @@
         .lang-btn.active { box-shadow: var(--shadow-in); background-color: var(--surface); }
     </style>
     <script src="i18n.js"></script>
+    <script src="firebase_client.js"></script>
 </head>
 <body class="relative min-h-screen pt-12 pb-24 px-4 md:px-12 w-full max-w-screen-2xl mx-auto">
 
@@ -165,8 +166,8 @@
 
         async function initCalendar() {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/programs`);
-                const programs = await res.json();
+                // Use the global fbGetPrograms function from firebase_client.js
+                const programs = await window.fbGetPrograms();
                 
                 programs.forEach((prog, idx) => {
                     const color = prog.color || colors[idx % colors.length];
@@ -191,7 +192,7 @@
                 });
                 renderCalendar();
             } catch (e) {
-                console.error("Failed to fetch programs", e);
+                console.error("Failed to fetch programs from Firebase", e);
                 const container = document.getElementById('calendar-days');
                 if(container) container.innerHTML = `<div class="col-span-7 font-black text-center text-red-500 py-10">${getI18nText('cal_fail')}</div>`;
             }
