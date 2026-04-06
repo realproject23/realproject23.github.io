@@ -138,6 +138,7 @@
         .lang-btn.active { box-shadow: var(--shadow-in); background-color: var(--surface); }
     </style>
     <script src="i18n.js"></script>
+    <script src="firebase_client.js"></script>
 </head>
 <body class="relative min-h-screen pt-12 pb-24 px-4 md:px-12 w-full max-w-screen-2xl mx-auto">
 
@@ -308,8 +309,7 @@
         const savedTheme = localStorage.getItem('youth_canvas_main_theme') || 'bench';
         setTheme(savedTheme);
 
-        // 🌟 2. Data Fetching API Logic
-        const API_BASE_URL = "http://127.0.0.1:8000";
+        // 🌟 2. Data Fetching Logic — Direct Firebase REST API (No backend needed!)
         window.fetchedPrograms = [];
 
         function getYoutubeEmbedUrl(url) {
@@ -319,23 +319,22 @@
             return (match && match[1]) ? `https://www.youtube.com/embed/${match[1]}` : null;
         }
 
-        function loadRealPrograms() {
+        async function loadRealPrograms() {
             const container = document.getElementById('dynamic-program-list');
             if(!container) return;
             container.innerHTML = `<div class="ui-card p-10 text-center text-[var(--text-muted)] font-black lg:col-span-3 text-lg">${getI18nText('syncing')}</div>`;
 
-            fetch(`${API_BASE_URL}/api/programs`)
-                .then(res => { if(!res.ok) throw new Error(); return res.json(); })
-                .then(programs => {
-                    container.innerHTML = '';
-                    window.fetchedPrograms = programs; 
+            try {
+                const programs = await window.fbGetPrograms();
+                container.innerHTML = '';
+                window.fetchedPrograms = programs;
 
-                    if(programs.length === 0) {
-                        container.innerHTML = `<div class="ui-card p-10 text-center text-[var(--text-muted)] font-black lg:col-span-3 text-lg">${getI18nText('no_programs')}</div>`;
-                        return;
-                    }
+                if(programs.length === 0) {
+                    container.innerHTML = `<div class="ui-card p-10 text-center text-[var(--text-muted)] font-black lg:col-span-3 text-lg">${getI18nText('no_programs')}</div>`;
+                    return;
+                }
 
-                    programs.forEach((prog, index) => {
+                programs.forEach((prog, index) => {
                         let dDayHtml = '';
                         let isClosed = false;
                         
@@ -408,10 +407,10 @@
                             </div>
                         `;
                     });
-                })
-                .catch(err => { 
-                    if(container) container.innerHTML = `<div class="ui-card p-10 text-center text-red-500 font-bold lg:col-span-3">${getI18nText('server_fail')}</div>`; 
-                });
+            } catch(err) {
+                if(container) container.innerHTML = `<div class="ui-card p-10 text-center text-red-500 font-bold lg:col-span-3">${getI18nText('server_fail')}</div>`;
+                console.error("Firebase load error:", err);
+            }
         }
 
         window.openWorkflowModal = function(index) {

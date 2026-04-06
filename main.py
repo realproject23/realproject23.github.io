@@ -94,6 +94,8 @@ def serve_calendar(): return FileResponse("calendar.html")
 # Serve static JS and CSS files
 @app.get("/i18n.js")
 def serve_i18n(): return FileResponse("i18n.js")
+@app.get("/firebase_client.js")
+def serve_firebase_client(): return FileResponse("firebase_client.js")
 @app.get("/style.css")
 def serve_style(): return FileResponse("style.css")
 @app.get("/script.js")
@@ -673,3 +675,10 @@ def get_all_evaluations(current_user: dict = Depends(get_current_user)):
         evals.append(d)
     evals.sort(key=lambda x: x.get("date", ""))
     return evals
+
+if __name__ == "__main__":
+    import uvicorn
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    # Render/Railway 등 클라우드 환경에서는 0.0.0.0으로 바인딩해야 접근 가능함
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
