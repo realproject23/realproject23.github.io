@@ -56,6 +56,10 @@
             <h1 id="welcomeMessage" data-i18n="dash_welcome" class="text-xl font-extrabold tracking-tight text-pri">학생 대시보드</h1>
         </div>
         <div class="flex gap-4 items-center">
+            <button onclick="loadDashboardData(); loadMiniCalendar();" class="ui-btn px-4 py-2 rounded-xl text-[14px] font-black flex items-center gap-1.5 hover:scale-105 transition">
+                <span class="text-blue-500">🔄</span> 
+                <span data-i18n="dash_sync">데이터 동기화</span>
+            </button>
             <nav class="hidden sm:flex gap-6 mr-6 border-r border-[var(--border-color)] pr-6">
                 <a href="index.html" data-i18n="nav_home" class="text-[17px] font-black text-pri hover:text-[var(--accent)] transition">탐색 홈</a>
                 <a href="calendar.html" data-i18n="nav_calendar" class="text-[17px] font-black text-pri hover:text-[var(--accent)] transition">전체 일정표</a>
@@ -243,7 +247,7 @@
         window.currentChartLib = 'plotly'; 
         
         document.addEventListener('DOMContentLoaded', () => {
-            const API_BASE_URL = "http://127.0.0.1:8000";
+            const API_BASE_URL = "https://realproject23-api.onrender.com";
             
             function getAuthHeaders() {
                 const token = localStorage.getItem('youth_canvas_token');
@@ -351,7 +355,7 @@
         async function loadMiniCalendar() {
             const container = document.getElementById('miniCalendar');
             try {
-                const res = await fetch("http://127.0.0.1:8000/api/programs");
+                const res = await fetch(`${API_BASE_URL}/api/programs`);
                 const data = await res.json();
                 const events = [];
                 const now = new Date();
@@ -493,7 +497,7 @@
             const taskText = window._workflowLines[taskId] || '';
             checkbox.disabled = true; // 서버 통신 중 중복 클릭 방지
             
-            fetch(`http://127.0.0.1:8000/api/user/tasks`, {
+            fetch(`${API_BASE_URL}/api/user/tasks`, {
                 method: 'POST',
                 headers: window.getAuthHeaders(),
                 body: JSON.stringify({ task_id: taskId, task_text: taskText, completed: checkbox.checked })
@@ -642,12 +646,12 @@
         window.sendMsg = function() {
             const input = document.getElementById('chatInput');
             if(!input.value.trim()) return;
-            fetch(`http://127.0.0.1:8000/api/student/chat/send`, { method: "POST", headers: window.getAuthHeaders(), body: JSON.stringify({ message: input.value }) })
+            fetch(`${API_BASE_URL}/api/student/chat/send`, { method: "POST", headers: window.getAuthHeaders(), body: JSON.stringify({ message: input.value }) })
             .then(res => res.json()).then(() => { input.value = ''; loadChatHistory(); });
         }
 
         window.loadChatHistory = function() {
-            fetch(`http://127.0.0.1:8000/api/student/chat`, { headers: window.getAuthHeaders() })
+            fetch(`${API_BASE_URL}/api/student/chat`, { headers: window.getAuthHeaders() })
             .then(res => res.json())
             .then(messages => {
                 const box = document.getElementById('chatBox');

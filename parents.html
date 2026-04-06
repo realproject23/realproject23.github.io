@@ -212,7 +212,8 @@
         let parentData = null; 
 
         document.addEventListener('DOMContentLoaded', () => {
-            const API_BASE_URL = "http://127.0.0.1:8000";
+            const API_BASE_URL = "https://realproject23-api.onrender.com";
+            window.API_BASE_URL = API_BASE_URL; 
             
             function getAuthHeaders() {
                 const token = localStorage.getItem('youth_canvas_token');
@@ -332,7 +333,7 @@
         }
 
         window.loadParentChat = function() {
-            fetch(`http://127.0.0.1:8000/api/parent/chat`, { headers: getAuthHeaders() })
+            fetch(`${API_BASE_URL}/api/parent/chat`, { headers: getAuthHeaders() })
             .then(res => res.json()).then(msgs => {
                 const box = document.getElementById('parent-chat-box');
                 if(!msgs.length) return;
@@ -348,7 +349,7 @@
         window.parentSendChat = function() {
             const input = document.getElementById('parent-chat-input');
             if(!input.value) return;
-            fetch(`http://127.0.0.1:8000/api/parent/chat/send`, { method: "POST", headers: getAuthHeaders(), body: JSON.stringify({ message: input.value }) })
+            fetch(`${API_BASE_URL}/api/parent/chat/send`, { method: "POST", headers: getAuthHeaders(), body: JSON.stringify({ message: input.value }) })
             .then(() => { input.value = ''; loadParentChat(); });
         }
 

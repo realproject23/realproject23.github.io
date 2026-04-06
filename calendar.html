@@ -161,9 +161,11 @@
         let eventsMap = {}; 
         const colors = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#EC4899', '#8B5CF6'];
 
+        const API_BASE_URL = "https://realproject23-api.onrender.com";
+
         async function initCalendar() {
             try {
-                const res = await fetch("http://127.0.0.1:8000/api/programs");
+                const res = await fetch(`${API_BASE_URL}/api/programs`);
                 const programs = await res.json();
                 
                 programs.forEach((prog, idx) => {

@@ -76,6 +76,7 @@ const translations = {
         // Dashboard
         "dash_title": "학생 스마트 대시보드",
         "dash_welcome": "학생 대시보드",
+        "dash_sync": "데이터 동기화",
         "dash_logout": "로그아웃",
         "dash_my_programs": "나의 소속 프로그램",
         "dash_student_badge": "수강생",
@@ -402,6 +403,7 @@ const translations = {
         // Dashboard
         "dash_title": "Student Smart Dashboard",
         "dash_welcome": "Student Dashboard",
+        "dash_sync": "Sync Data",
         "dash_logout": "Logout",
         "dash_my_programs": "My Programs",
         "dash_student_badge": "Student",

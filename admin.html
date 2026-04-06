@@ -84,6 +84,9 @@
             <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <h2 class="text-xl md:text-2xl font-extrabold text-[var(--text-main)]" id="current-tab-title">경영 대시보드</h2>
                 <div class="flex flex-wrap items-center gap-3 md:gap-4 w-full sm:w-auto justify-start sm:justify-end mt-2 sm:mt-0">
+                    <button onclick="loadAdminPrograms(); loadStudents(); loadBilling(); loadDashboard(); this.classList.add('animate-spin'); setTimeout(()=>this.classList.remove('animate-spin'), 1000);" class="ui-btn p-2.5 rounded-xl text-[15px] flex items-center justify-center gap-1.5 hover:scale-105 transition" title="Firebase 데이터 새로고침">
+                        <span class="text-blue-500 text-lg">🔄</span>
+                    </button>
                     <!-- Language Switcher -->
                     <div class="flex items-center gap-2 ui-shadow-in px-4 py-1.5 rounded-full w-max">
                         <button onclick="setLanguage('ko')" data-lang="ko" class="lang-btn px-2 py-0.5 text-[13px] font-black rounded-full transition">KO</button>
@@ -563,7 +566,7 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            const API_BASE_URL = "http://127.0.0.1:8000";
+            const API_BASE_URL = "https://realproject23-api.onrender.com";
             window.allStudentsData = [];
             let dashboardChart = null;
 
